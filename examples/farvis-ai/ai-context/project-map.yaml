@@ -1,0 +1,75 @@
+# Farvis-AI 填写示例 — 模块地图
+project:
+  name: farvis-ai
+  description: "AI 数字人视频生成平台"
+  architecture: layered-monolith
+  language: java-17
+  framework: spring-boot-3.3
+  database: mysql-8.0
+  cache: redis-7.2
+  external_api: heygen-api-v3
+
+modules:
+  - name: farvis-video
+    responsibility: "视频生成、状态管理、Webhook 回调、轮询降级"
+    expose:
+      - "POST /api/v1/videos"
+      - "GET /api/v1/videos/{id}"
+      - "POST /webhook/heygen"
+    forbidden:
+      - "直接操作 Credits 表（通过 CreditsApplicationService）"
+      - "直接调 HeyGen API（通过 HeyGenClient）"
+    dependsOn:
+      - "farvis-credits"
+      - "farvis-heygen"
+
+  - name: farvis-avatar
+    responsibility: "数字人管理：公共形象浏览、数字分身创建、授权流程"
+    expose:
+      - "GET /api/v1/avatars"
+      - "POST /api/v1/avatars"
+      - "POST /api/v1/avatars/auth"
+    dependsOn:
+      - "farvis-heygen"
+      - "farvis-credits"
+
+  - name: farvis-voice
+    responsibility: "声音管理：公共音色浏览、声音克隆"
+    expose:
+      - "GET /api/v1/voices"
+      - "POST /api/v1/voices/clone"
+    dependsOn:
+      - "farvis-heygen"
+      - "farvis-credits"
+
+  - name: farvis-credits
+    responsibility: "积分管理：充值、消费、余额查询、消费记录"
+    expose:
+      - "GET /api/v1/credits/balance"
+      - "GET /api/v1/credits/transactions"
+      - "POST /api/v1/credits/deduct"  # 内部接口
+    forbidden:
+      - "包含业务编排逻辑"
+
+  - name: farvis-payment
+    responsibility: "支付集成：支付宝/微信支付、回调、补单"
+    expose:
+      - "POST /api/v1/payment/order"
+      - "POST /api/v1/payment/callback"
+    dependsOn:
+      - "farvis-credits"
+
+  - name: farvis-heygen
+    responsibility: "HeyGen API 封装：资源映射、视频生成、异步回调处理"
+    expose:
+      - "HeyGenClient（内部 Java 接口，非 REST）"
+    forbidden:
+      - "包含任何业务逻辑"
+
+rules:
+  - "Controller 不做业务编排，只做协议转换和参数校验"
+  - "跨聚合操作通过 ApplicationService 编排"
+  - "所有 HeyGen API 调用必须通过 HeyGenClient"
+  - "Redis 只缓存只读视图和幂等状态，不缓存事务中间态"
+  - "消息发送通过 Outbox 表，不直接 fire-and-forget"
+  - "视频 URL 代理下载转存 OSS，前端不使用 HeyGen 临时 URL"

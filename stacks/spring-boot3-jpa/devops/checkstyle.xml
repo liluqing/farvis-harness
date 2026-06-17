@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+  Java Harness Checkstyle 配置
+  基于 Google Java Style，适配 Spring Boot 项目。
+
+  使用方式：
+    1. 在 build.gradle.kts 中启用 checkstyle 插件
+    2. 放置本文件到 config/checkstyle/checkstyle.xml
+    3. ./gradlew checkstyleMain
+
+  关键规则：
+    - 禁止 System.out/err.print（用 log）
+    - 禁止未使用的 import
+    - 限制方法长度 ≤ 80 行
+    - 限制文件长度 ≤ 800 行
+-->
+
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="warning"/>
+
+    <!-- 文件长度不超过 800 行 -->
+    <module name="FileLength">
+        <property name="max" value="800"/>
+    </module>
+
+    <!-- Tab 字符检查 -->
+    <module name="FileTabCharacter">
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <!-- 行尾空格检查 -->
+    <module name="RegexpSingleline">
+        <property name="format" value="\s+$"/>
+        <property name="message" value="Trailing whitespace"/>
+    </module>
+
+    <module name="TreeWalker">
+        <!-- ====== Import 检查 ====== -->
+        <module name="AvoidStarImport"/>
+        <module name="UnusedImports"/>
+        <module name="RedundantImport"/>
+        <module name="IllegalImport">
+            <property name="illegalPkgs" value="org.junit.Assert"/>
+            <property name="illegalClasses" value="java.util.Date"/>
+        </module>
+
+        <!-- ====== 命名规范 ====== -->
+        <module name="ConstantName">
+            <property name="format" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$|^log$"/>
+        </module>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName"/>
+        <module name="TypeName"/>
+
+        <!-- ====== 方法长度 ≤ 80 行 ====== -->
+        <module name="MethodLength">
+            <property name="max" value="80"/>
+            <property name="countEmpty" value="false"/>
+        </module>
+
+        <!-- ====== 禁止 System.out/err ====== -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="System\.(out|err)\.print"/>
+            <property name="message" value="Use SLF4J logger instead of System.out/err"/>
+        </module>
+
+        <!-- ====== 禁止 printStackTrace ====== -->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="\.printStackTrace\(\)"/>
+            <property name="message" value="Use logger.error(msg, exception) instead of printStackTrace()"/>
+        </module>
+
+        <!-- ====== 空块检查 ====== -->
+        <module name="EmptyBlock"/>
+        <module name="EmptyCatchBlock">
+            <property name="commentFormat" value="expected|intentional|ignored"/>
+        </module>
+
+        <!-- ====== 括号检查 ====== -->
+        <module name="NeedBraces"/>
+        <module name="LeftCurly"/>
+        <module name="RightCurly"/>
+        <module name="WhitespaceAround"/>
+
+        <!-- ====== Javadoc（Controller/Service 公开方法必须） ====== -->
+        <module name="JavadocMethod">
+            <property name="accessModifiers" value="public"/>
+            <property name="allowMissingParamTags" value="true"/>
+            <property name="allowMissingReturnTag" value="true"/>
+            <property name="allowedAnnotations" value="Override,Test,ParameterizedTest,BeforeEach,AfterEach"/>
+        </module>
+
+        <!-- ====== Magic Number（避免硬编码） ====== -->
+        <module name="MagicNumber">
+            <property name="ignoreNumbers" value="-1, 0, 1, 2, 200, 201, 400, 401, 403, 404, 409, 500, 503"/>
+            <property name="ignoreHashCodeMethod" value="true"/>
+            <property name="ignoreAnnotation" value="true"/>
+            <property name="ignoreFieldDeclaration" value="true"/>
+        </module>
+
+        <!-- ====== 行长度 ≤ 120 ====== -->
+        <module name="LineLength">
+            <property name="max" value="120"/>
+            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+        </module>
+    </module>
+
+    <!-- 忽略自动生成的文件 -->
+    <module name="SuppressionSingleFilter">
+        <property name="files" value="Q[A-Z].*\.java"/>
+        <property name="checks" value="."/>
+    </module>
+    <module name="SuppressionSingleFilter">
+        <property name="files" value=".*[\\/]build[\\/]generated[\\/].*"/>
+        <property name="checks" value="."/>
+    </module>
+</module>

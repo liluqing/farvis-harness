@@ -1,0 +1,43 @@
+#!/bin/bash
+# Git pre-commit hook — 提交前运行快速测试
+#
+# 软链接到 .git/hooks/pre-commit：
+#   ln -sf ../../.harness/hooks/git/pre-commit .git/hooks/pre-commit
+#
+# 行为：只跑 fastTest（切片测试），3s 内完成。
+# 如果 fastTest 失败，阻止提交。
+
+set -e
+
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$HOOK_DIR/../../.." && pwd)"
+
+echo "🔍 Harness: running fastTest..."
+
+# Gradle 项目
+if [ -f "$PROJECT_ROOT/build.gradle.kts" ] || [ -f "$PROJECT_ROOT/build.gradle" ]; then
+    cd "$PROJECT_ROOT"
+    if ./gradlew fastTest --quiet 2>&1; then
+        echo "✅ fastTest passed"
+    else
+        echo "❌ fastTest failed — commit blocked"
+        echo "   Run './gradlew fastTest' to see details"
+        exit 1
+    fi
+    exit 0
+fi
+
+# Maven 项目
+if [ -f "$PROJECT_ROOT/pom.xml" ]; then
+    cd "$PROJECT_ROOT"
+    if mvn test -pl '!integration-test' --quiet 2>&1; then
+        echo "✅ fastTest passed"
+    else
+        echo "❌ fastTest failed — commit blocked"
+        exit 1
+    fi
+    exit 0
+fi
+
+echo "⚠️  No build tool detected — skipping fastTest"
+exit 0

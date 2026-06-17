@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!--
+      Java Harness SpotBugs 排除配置
+      排除已知误报和项目约定豁免的规则。
+
+      使用方式：
+        1. 在 build.gradle.kts 中启用 spotbugs 插件
+        2. 放置本文件到 config/spotbugs/spotbugs-exclude.xml
+        3. ./gradlew spotbugsMain
+    -->
+
+    <!-- ====== Lombok 生成的代码 ====== -->
+    <Match>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+        <Or>
+            <Annotation name="lombok.Getter"/>
+            <Annotation name="lombok.Data"/>
+            <Annotation name="lombok.Value"/>
+        </Or>
+    </Match>
+
+    <!-- ====== JPA Entity（Hibernate 需要反射设值） ====== -->
+    <Match>
+        <Or>
+            <Bug pattern="UWF_UNWRITTEN_FIELD"/>
+            <Bug pattern="NP_UNWRITTEN_FIELD"/>
+        </Or>
+        <Or>
+            <Annotation name="jakarta.persistence.Entity"/>
+            <Annotation name="jakarta.persistence.Embeddable"/>
+        </Or>
+    </Match>
+
+    <!-- ====== Jackson 序列化需要 getter ====== -->
+    <Match>
+        <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
+        <Class name="~.*\.dto\..*"/>
+    </Match>
+
+    <!-- ====== Spring @Autowired 字段注入（已由 coding-rules 禁止，SpotBugs 不重复报） ====== -->
+    <!-- 保留检测，不排除 -->
+
+    <!-- ====== 测试代码（降低标准） ====== -->
+    <Match>
+        <Class name="~.*Test.*"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+    </Match>
+
+    <!-- ====== 已知无害模式 ====== -->
+
+    <!-- MapStruct generated code -->
+    <Match>
+        <Class name="~.*MapperImpl"/>
+    </Match>
+
+    <!-- QueryDSL generated code -->
+    <Match>
+        <Class name="~Q[A-Z].*"/>
+    </Match>
+
+    <!-- ====== 项目特定排除（按需添加） ====== -->
+    <!--
+    <Match>
+        <Class name="com.example.specific.ClassName"/>
+        <Bug pattern="SPECIFIC_BUG_PATTERN"/>
+    </Match>
+    -->
+</FindBugsFilter>

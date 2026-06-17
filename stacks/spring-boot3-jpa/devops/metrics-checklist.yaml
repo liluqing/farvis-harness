@@ -1,0 +1,118 @@
+# 业务指标清单
+#
+# 本文件定义项目中每个模块需要暴露的 Prometheus 指标。
+# 命名规范：{project}_{module}_{operation}_{unit}
+#   Counter：_total 后缀，只增不减
+#   Timer：_seconds 后缀，记录耗时分布
+#   Gauge：瞬时值，可增可减
+#
+# 使用方式：
+#   1. Phase 2 架构设计完成后，按模块填写本清单
+#   2. Phase 3 开发每个切片时，按清单创建 XxxMetrics 类
+#   3. Phase 4 集成测试时，验证指标已暴露
+#
+# 参考实现：infra/observe/BusinessMetricsTemplate.java
+
+modules:
+  # ====== 示例：订单模块 ======
+  - name: order
+    description: "订单管理"
+    counters:
+      - name: order_created_total
+        description: "订单创建成功次数"
+        tags: [status]          # success / failed
+      - name: order_cancelled_total
+        description: "订单取消次数"
+        tags: [reason]          # user / timeout / admin
+      - name: order_duplicate_total
+        description: "幂等命中次数（重复提交被拦截）"
+    timers:
+      - name: order_create_seconds
+        description: "订单创建耗时（含幂等检查+DB写入+Outbox）"
+        buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5]
+    gauges:
+      - name: order_pending_count
+        description: "待处理订单数（状态=PENDING）"
+
+  # ====== 示例：支付模块 ======
+  - name: payment
+    description: "支付处理"
+    counters:
+      - name: payment_initiated_total
+        description: "支付发起次数"
+        tags: [channel]         # wechat / alipay / card
+      - name: payment_success_total
+        description: "支付成功次数"
+        tags: [channel]
+      - name: payment_failed_total
+        description: "支付失败次数"
+        tags: [channel, error_type]  # timeout / declined / network
+    timers:
+      - name: payment_process_seconds
+        description: "支付处理耗时（从发起到回调确认）"
+    gauges:
+      - name: payment_retry_queue_size
+        description: "支付重试队列长度"
+
+  # ====== 示例：外部 API 调用 ======
+  - name: external_api
+    description: "外部 API 调用监控"
+    counters:
+      - name: api_call_total
+        description: "外部 API 调用次数"
+        tags: [service, path, outcome]  # service=heygen,outcome=success/failed/circuit_open
+      - name: api_circuit_open_total
+        description: "熔断打开次数"
+        tags: [service]
+      - name: api_retry_total
+        description: "API 重试次数"
+        tags: [service, attempt]   # attempt=1/2/3
+    timers:
+      - name: api_call_seconds
+        description: "外部 API 调用耗时"
+        tags: [service, path]
+
+  # ====== 示例：Outbox 投递 ======
+  - name: outbox
+    description: "Outbox 事件投递监控"
+    counters:
+      - name: outbox_published_total
+        description: "事件投递成功次数"
+        tags: [event_type]
+      - name: outbox_failed_total
+        description: "事件投递失败次数"
+        tags: [event_type, error]
+      - name: outbox_dead_total
+        description: "死信事件数（超过最大重试）"
+        tags: [event_type]
+    gauges:
+      - name: outbox_pending_count
+        description: "待投递事件数（状态=NEW/RETRY）"
+      - name: outbox_lag_seconds
+        description: "最旧待投递事件的等待时间"
+
+# ====== 通用基础设施指标（每个项目都应有） ======
+infrastructure:
+  jvm:
+    - name: jvm_memory_used_bytes
+      source: micrometer      # Micrometer 自动暴露
+    - name: jvm_gc_pause_seconds
+      source: micrometer
+    - name: jvm_threads_live
+      source: micrometer
+
+  http:
+    - name: http_server_requests_seconds
+      source: micrometer      # spring-boot-starter-actuator 自动暴露
+      description: "HTTP 请求耗时（含 P50/P95/P99）"
+    - name: http_server_requests_active
+      source: micrometer
+      description: "当前活跃 HTTP 请求数"
+
+  datasource:
+    - name: hikaricp_connections_active
+      source: micrometer      # HikariCP 自动暴露
+      description: "活跃数据库连接数"
+    - name: hikaricp_connections_pending
+      source: micrometer
+      description: "等待获取连接的线程数"

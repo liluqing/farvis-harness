@@ -1,0 +1,42 @@
+# AI Context: 编码规则
+# Agent 在 Phase 3 每个切片生成代码时，必须遵循此文件的每一条规则
+# 维护者：Phase 2 架构设计阶段填写，团队 Code Review 持续补充
+
+rules:
+  # 分层约束
+  - "Controller 不做业务编排，只做协议转换和参数校验"
+  - "Service 层通过接口暴露，实现类命名 {Interface}Impl"
+  - "跨聚合操作必须通过 ApplicationService 编排，不允许 Service 直接调另一个模块的 Repository"
+  - "数据库操作必须在 Repository 层，不允许 Service 直接使用 JdbcTemplate/EntityManager"
+
+  # API 约定
+  - "所有对外 API 统一返回 Result<T> {code, data, message}"
+    # → 实现：.harness/infra/Result.java
+  - "参数校验使用 Bean Validation（@Valid），不在 Controller 内手动校验"
+  - "异常统一由 GlobalExceptionHandler 处理，不允许 Controller 内 try-catch"
+    # → 实现：.harness/infra/exception/GlobalExceptionHandler.java + BizException.java
+
+  # 数据与缓存
+  - "Redis 只缓存只读视图和幂等状态，不缓存事务中间态"
+  - "实体类使用 Builder 模式，禁止 Setter 满天飞"
+  - "状态变更通过实体方法（如 order.confirm()），不直接 setStatus()"
+
+  # 消息与异步
+  - "消息发送必须通过 Outbox 表，不允许业务代码直接 fire-and-forget"
+    # → 实现：.harness/infra/outbox/OutboxEvent.java + OutboxDispatcher.java
+  - "关键异步操作必须可重试、可补偿、可观测"
+
+  # 外部 API 调用
+  - "所有外部 API 调用必须通过专用 Client 类，不允许 Service 直接 HTTP 调用"
+    # → 模板：.harness/infra/client/ExternalApiClient.java（超时+重试+熔断）
+  - "外部 API Client 必须包含超时、重试、熔断配置"
+
+  # 可观测性
+  - "关键操作日志必须包含 traceId（MDC）"
+  - "日志使用结构化格式（JSON），不允许字符串拼接"
+  - "业务关键路径必须上报 Metrics（Counter/Timer）"
+
+  # 测试
+  - "每个模块必须有 SliceTestConfiguration，测试时间 ≤ 30s"
+  - "涉及外部 API 的测试必须使用 WireMock，不允许依赖真实外部服务"
+  - "并发敏感的逻辑必须有并发测试用例（≥ 2 线程）"

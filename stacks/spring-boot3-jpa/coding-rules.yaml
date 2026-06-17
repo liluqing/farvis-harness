@@ -1,0 +1,35 @@
+# Spring Boot 3 + JPA 编码规则
+# 本文件补充 core/ai-context/coding-rules.yaml，增加框架特化规则。
+# 初始化时 Agent 同时加载 core/ 和 stacks/ 的规则。
+
+rules:
+  # === Spring Boot 特化 ===
+
+  - "Controller 使用 @RestController，不是 @Controller + @ResponseBody"
+  - "依赖注入使用构造器注入，禁止 @Autowired 字段注入"
+  - "使用 @Valid / @Validated 做参数校验，不在 Controller 内手动 if-null"
+  - "异常统一由 @RestControllerAdvice GlobalExceptionHandler 处理"
+  - "使用 Lombok @Slf4j，关键操作日志包含 traceId（MDC）"
+
+  # === JPA 特化 ===
+
+  - "Entity 禁止暴露 Setter，状态变更通过专用方法（如 order.confirm()）"
+  - "Entity 使用 @Builder 模式创建，但 Builder 不允许绕过业务规则"
+  - "Repository 只做数据访问，不包含业务逻辑"
+  - "Entity 关联默认 LAZY，避免 N+1 查询"
+  - "批量操作使用 @Modifying @Query，注意 clearAutomatically=true"
+  - "@Transactional 只放在 ApplicationService 层，不放在 Controller"
+
+  # === Spring Data Redis 特化 ===
+
+  - "Redis 只缓存只读视图和幂等状态，不缓存事务中间态"
+  - "缓存 Key 命名：{project}:{module}:{entity}:{id}"
+  - "幂等 Key 命名：idempotency:{operation}:{requestId}"
+
+  # === 测试特化 ===
+
+  - "切片测试使用 @SpringBootTest(classes = XxxSliceTestConfiguration.class, webEnvironment = NONE)"
+  - "集成测试使用 @Testcontainers，不依赖本地 Docker Compose"
+  - "外部 API 测试使用 WireMock（@WireMockTest），不调真实服务"
+  - "Mock 使用 @MockBean（Spring Boot）或 @Mock（MockitoExtension）"
+  - "断言使用 AssertJ（assertThat），不用 JUnit assertEquals"

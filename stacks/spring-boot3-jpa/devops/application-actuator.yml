@@ -1,0 +1,43 @@
+# Actuator + Prometheus 配置片段
+#
+# 使用方式：在主 application-{profile}.yml 中引入：
+#   spring.config.import: classpath:application-actuator.yml
+#
+# 或在 application.yml 中全局启用（不推荐，会暴露到生产）。
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # 生产环境改为：health,info,prometheus
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always                  # 生产改 never
+      probes:
+        enabled: true                       # K8s liveness/readiness
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+        step: 30s                           # 抓取间隔
+        descriptions: true                  # 包含指标描述
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true          # HTTP 请求 P50/P95/P99 直方图
+      slo:
+        http.server.requests: 10ms,50ms,100ms,200ms,500ms,1s,2s
+    tags:
+      application: ${spring.application.name:unknown}
+      instance: ${random.uuid}              # 区分多实例
+  observations:
+    key-values:
+      application: ${spring.application.name:unknown}
+
+# 暴露给 Prometheus 的端点（无需认证，内网访问）
+# 生产建议：加 Spring Security 或只用内网 IP 绑定
+server:
+  shutdown: graceful
+  # 如需限制 actuator 端口：
+  # port: 8081

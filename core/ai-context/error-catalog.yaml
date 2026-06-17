@@ -1,0 +1,30 @@
+# AI Context: 错误目录
+# 每个线上问题、回归缺陷都应在此追加一条记录
+# Agent 在 Phase 4 + 生产问题定位时读取此文件
+# 维护者：全团队，持续沉淀
+
+errors:
+  # 示例错误（按实际系统填写）
+  # DUPLICATE_REQUEST:
+  #   cause: "重复 requestId 导致幂等命中"
+  #   action: "返回已有结果，不重复处理"
+  #   http_status: 200
+  #   log_level: "INFO"
+  #
+  # INSUFFICIENT_BALANCE:
+  #   cause: "余额/额度不足"
+  #   action: "返回错误码 + 引导充值"
+  #   http_status: 402
+  #   log_level: "WARN"
+  #
+  # DOWNSTREAM_TIMEOUT:
+  #   cause: "下游服务超时"
+  #   action: "退避重试 3 次 → 标记失败 → 告警"
+  #   http_status: 503
+  #   log_level: "ERROR"
+  #
+  # VERSION_CONFLICT:
+  #   cause: "乐观锁版本冲突"
+  #   action: "自动重试，超过 3 次返回失败"
+  #   http_status: 409
+  #   log_level: "WARN"

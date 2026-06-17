@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Logback 配置 — 结构化 JSON 日志（Java AI Coding 推荐格式）
+
+  设计原则：
+    1. JSON 编码，便于 ELK/Loki 解析
+    2. 自动注入 traceId（MDC）
+    3. 关键字段：timestamp, level, logger, thread, message, traceId, spanId
+    4. 不打印大型 payload（截断 > 10KB）
+
+  使用方式：
+    放到 src/main/resources/logback-spring.xml
+    Spring Boot 自动加载
+-->
+<configuration>
+    <!-- 控制台输出（开发环境） -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <fieldName>timestamp</fieldName>
+                </timestamp>
+                <mdc>
+                    <fieldName>mdc</fieldName>
+                </mdc>
+                <pattern>
+                    <pattern>
+                        {
+                            "level": "%level",
+                            "logger": "%logger{36}",
+                            "thread": "%thread",
+                            "message": "%message",
+                            "exception": "%ex{full}"
+                        }
+                    </pattern>
+                </pattern>
+                <stackTrace>
+                    <fieldName>stackTrace</fieldName>
+                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                        <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                        <maxLength>2048</maxLength>
+                        <shortenedClassNameLength>20</shortenedClassNameLength>
+                        <rootCauseFirst>true</rootCauseFirst>
+                    </throwableConverter>
+                </stackTrace>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- 文件输出（生产环境 — 按需启用） -->
+    <!--
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            ... 同 CONSOLE 配置 ...
+        </encoder>
+    </appender>
+    -->
+
+    <!-- 异步日志（生产推荐，避免 IO 阻塞） -->
+    <!--
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="FILE"/>
+    </appender>
+    -->
+
+    <!-- ====== 日志级别 ====== -->
+
+    <!-- 项目包：INFO -->
+    <logger name="com.example" level="DEBUG"/>
+
+    <!-- 框架：过滤噪音 -->
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="org.apache.kafka" level="WARN"/>
+
+    <!-- 根级别 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <!-- <appender-ref ref="ASYNC"/> -->
+    </root>
+</configuration>

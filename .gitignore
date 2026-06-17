@@ -1,0 +1,11 @@
+# Harness template files — these get COPIED to project .harness/
+# Keep this repo's .gitignore minimal since it IS the template
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

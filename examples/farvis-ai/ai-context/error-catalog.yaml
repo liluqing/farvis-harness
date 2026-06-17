@@ -1,0 +1,88 @@
+# Farvis-AI 填写示例 — 错误目录
+errors:
+  VIDEO_DUPLICATE_REQUEST:
+    cause: "重复 requestId 导致幂等命中"
+    action: "返回已有 video_id，不重复扣费"
+    http_status: 200
+    log_level: "INFO"
+
+  CREDITS_INSUFFICIENT:
+    cause: "Credits 余额不足"
+    action: "返回 402 + 引导跳转积分中心"
+    http_status: 402
+    log_level: "WARN"
+
+  HEYGEN_CONTENT_REVIEW_FAILED:
+    cause: "HeyGen 内容审核不通过（422）"
+    action: "提示用户修改脚本，不扣费"
+    http_status: 422
+    log_level: "WARN"
+
+  HEYGEN_API_KEY_INVALID:
+    cause: "HeyGen API Key 失效（401）"
+    action: "告警 → 运维介入"
+    http_status: 503
+    log_level: "ERROR"
+
+  HEYGEN_QUOTA_EXHAUSTED:
+    cause: "HeyGen 额度耗尽（402）"
+    action: "暂停所有生成请求，通知管理员"
+    http_status: 503
+    log_level: "ERROR"
+
+  HEYGEN_RATE_LIMITED:
+    cause: "HeyGen 频率限制（429）"
+    action: "退避重试 1s→2s→4s→8s，给用户显示倒计时"
+    http_status: 429
+    log_level: "WARN"
+
+  HEYGEN_SERVICE_UNAVAILABLE:
+    cause: "HeyGen 5xx 或超时"
+    action: "指数退避 ≤3 次重试 → 最终标记 failed"
+    http_status: 503
+    log_level: "ERROR"
+
+  WEBHOOK_TIMEOUT:
+    cause: "15min 内 Webhook 未到达"
+    action: "轮询兜底 → 超时标记 failed → 通知用户重试"
+    log_level: "ERROR"
+
+  OUTBOX_DISPATCH_FAILED:
+    cause: "消息投递失败超过最大重试次数"
+    action: "标记 DEAD → 告警 → 人工介入"
+    log_level: "ERROR"
+
+  PAYMENT_DELIVERY_FAILED:
+    cause: "支付成功但 Credits 未到账，补单 3 次均失败"
+    action: "创建客服工单"
+    log_level: "ERROR"
+
+  AVATAR_TRAINING_FAILED:
+    cause: "数字人训练失败"
+    action: "退还 100C，提示用户重试"
+    http_status: 200
+    log_level: "WARN"
+
+  AVATAR_FACE_NOT_DETECTED:
+    cause: "上传文件未检测到清晰人脸（HeyGen 422）"
+    action: "退还 100C，提示重新上传"
+    http_status: 422
+    log_level: "INFO"
+
+  AVATAR_AUTH_EXPIRED:
+    cause: "授权链接 72h 未确认"
+    action: "退还 100C，提示重新创建"
+    http_status: 200
+    log_level: "INFO"
+
+  VOICE_CLONE_FAILED:
+    cause: "声音克隆训练失败"
+    action: "退还 50C，提示重试"
+    http_status: 200
+    log_level: "WARN"
+
+  VOICE_NOISE_TOO_HIGH:
+    cause: "上传音频噪音过高"
+    action: "提示用户安静环境重录，不扣费"
+    http_status: 422
+    log_level: "INFO"

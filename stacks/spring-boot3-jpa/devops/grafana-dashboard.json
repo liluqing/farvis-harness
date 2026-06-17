@@ -1,0 +1,263 @@
+{
+  "__inputs": [
+    {"name": "DS_PROMETHEUS", "type": "datasource", "label": "Prometheus"}
+  ],
+  "__requires": [
+    {"type": "grafana", "id": "grafana", "version": "10.0"},
+    {"type": "datasource", "id": "prometheus", "version": "1.0"}
+  ],
+  "annotations": {"list": [{"builtIn": 1, "datasource": "-- Grafana --", "enable": true, "hide": true, "iconColor": "rgba(0, 211, 255, 1)", "name": "Annotations & Alerts", "target": {"limit": 100}, "type": "dashboard"}]},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 100,
+      "panels": [],
+      "title": "📊 业务概览",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "short"
+        }
+      },
+      "gridPos": {"h": 3, "w": 6, "x": 0, "y": 1},
+      "id": 1,
+      "title": "请求总量",
+      "type": "stat",
+      "targets": [{"expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\"}[1m]))", "legendFormat": "rps"}],
+      "options": {"reduceOptions": {"values": false, "calcs": ["lastNotNull"]}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 95}]},
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {"h": 3, "w": 6, "x": 6, "y": 1},
+      "id": 2,
+      "title": "成功率",
+      "type": "stat",
+      "targets": [{"expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\",outcome=\"SUCCESS\"}[1m])) / sum(rate(http_server_requests_seconds_count{application=~\"$application\"}[1m]))", "legendFormat": "success rate"}],
+      "options": {"reduceOptions": {"values": false, "calcs": ["lastNotNull"]}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "fieldConfig": {
+        "defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 0.01}, {"color": "red", "value": 0.05}]}, "unit": "percentunit"}
+      },
+      "gridPos": {"h": 3, "w": 6, "x": 12, "y": 1},
+      "id": 3,
+      "title": "5xx 错误率",
+      "type": "stat",
+      "targets": [{"expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\",status=~\"5..\"}[1m])) / sum(rate(http_server_requests_seconds_count{application=~\"$application\"}[1m]))", "legendFormat": "5xx rate"}],
+      "options": {"reduceOptions": {"values": false, "calcs": ["lastNotNull"]}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "fieldConfig": {
+        "defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 2}]}, "unit": "s"}
+      },
+      "gridPos": {"h": 3, "w": 6, "x": 18, "y": 1},
+      "id": 4,
+      "title": "P99 延迟",
+      "type": "stat",
+      "targets": [{"expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=~\"$application\"}[1m])) by (le))", "legendFormat": "P99"}],
+      "options": {"reduceOptions": {"values": false, "calcs": ["lastNotNull"]}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 4},
+      "id": 101,
+      "panels": [],
+      "title": "🌐 HTTP",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 5},
+      "id": 10,
+      "title": "请求速率 (rps)",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\"}[1m])) by (status)", "legendFormat": "{{status}}"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "reqps", "custom": {"lineInterpolation": "smooth"}}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 5},
+      "id": 11,
+      "title": "延迟分布 (P50/P95/P99)",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=~\"$application\"}[1m])) by (le))", "legendFormat": "P50"},
+        {"expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=~\"$application\"}[1m])) by (le))", "legendFormat": "P95"},
+        {"expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=~\"$application\"}[1m])) by (le))", "legendFormat": "P99"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "custom": {"lineInterpolation": "smooth"}}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 13},
+      "id": 102,
+      "panels": [],
+      "title": "📨 Outbox",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 14},
+      "id": 20,
+      "title": "待投递事件数",
+      "type": "gauge",
+      "targets": [{"expr": "outbox_pending_count{application=~\"$application\"}", "legendFormat": "pending"}],
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 100}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 6, "w": 8, "x": 8, "y": 14},
+      "id": 21,
+      "title": "投递速率",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "rate(outbox_published_total{application=~\"$application\"}[1m])", "legendFormat": "published"},
+        {"expr": "rate(outbox_failed_total{application=~\"$application\"}[1m])", "legendFormat": "failed"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "custom": {"lineInterpolation": "smooth"}}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 6, "w": 8, "x": 16, "y": 14},
+      "id": 22,
+      "title": "死信事件数",
+      "type": "stat",
+      "targets": [{"expr": "outbox_dead_total{application=~\"$application\"}", "legendFormat": "dead"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 20},
+      "id": 103,
+      "panels": [],
+      "title": "🔌 外部 API",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 21},
+      "id": 30,
+      "title": "API 调用速率",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "sum(rate(api_call_total{application=~\"$application\"}[1m])) by (service, outcome)", "legendFormat": "{{service}} {{outcome}}"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "custom": {"lineInterpolation": "smooth", "stacking": {"mode": "normal"}}}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 21},
+      "id": 31,
+      "title": "API 调用延迟 (P95)",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum(rate(api_call_seconds_bucket{application=~\"$application\"}[1m])) by (le, service))", "legendFormat": "{{service}}"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "custom": {"lineInterpolation": "smooth"}}}
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 27},
+      "id": 104,
+      "panels": [],
+      "title": "☕ JVM",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 28},
+      "id": 40,
+      "title": "堆内存使用",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "jvm_memory_used_bytes{application=~\"$application\",area=\"heap\"}", "legendFormat": "used"},
+        {"expr": "jvm_memory_max_bytes{application=~\"$application\",area=\"heap\"}", "legendFormat": "max"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "bytes", "custom": {"lineInterpolation": "smooth"}}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 28},
+      "id": 41,
+      "title": "GC 暂停",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(jvm_gc_pause_seconds_sum{application=~\"$application\"}[1m])", "legendFormat": "{{action}}"}],
+      "fieldConfig": {"defaults": {"unit": "s", "custom": {"lineInterpolation": "smooth"}}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 28},
+      "id": 42,
+      "title": "活跃线程",
+      "type": "timeseries",
+      "targets": [{"expr": "jvm_threads_live_threads{application=~\"$application\"}", "legendFormat": "threads"}],
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"lineInterpolation": "smooth"}}}
+    },
+    {
+      "datasource": {"type": "prometheus"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 34},
+      "id": 43,
+      "title": "连接池 (HikariCP)",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "hikaricp_connections_active{application=~\"$application\"}", "legendFormat": "active"},
+        {"expr": "hikaricp_connections_idle{application=~\"$application\"}", "legendFormat": "idle"},
+        {"expr": "hikaricp_connections_pending{application=~\"$application\"}", "legendFormat": "pending"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"lineInterpolation": "smooth"}}}
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["harness", "java", "observability"],
+  "templating": {
+    "list": [
+      {
+        "current": {"selected": false, "text": "", "value": ""},
+        "datasource": {"type": "prometheus"},
+        "definition": "label_values(http_server_requests_seconds_count, application)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "应用",
+        "multi": false,
+        "name": "application",
+        "query": "label_values(http_server_requests_seconds_count, application)",
+        "refresh": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {"from": "now-1h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Java Harness — 核心业务监控",
+  "uid": "harness-java-core",
+  "version": 1
+}

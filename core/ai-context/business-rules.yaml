@@ -1,0 +1,30 @@
+# AI Context: 业务规则清单
+# Agent 在 Phase 3 每个切片前读取此文件，确定幂等/缓存/一致性/并发约束
+# 维护者：Phase 1 提取 + Phase 2 细化 + 生产回归持续更新
+
+rules:
+  # 示例规则（按实际业务填写）
+  # order-creation:
+  #   idempotency-key: "requestId"
+  #   unique-index: "uk_order_request_id"
+  #   consistency: "db-transaction + outbox"
+  #   cache-policy: "no-cache"
+
+  # order-query:
+  #   read-path: "redis -> mysql"
+  #   cache-ttl: "5min"
+  #   degraded-response: "allow-stale-3s"
+
+  # stock-deduction:
+  #   isolation: "optimistic-lock"
+  #   retry-policy: "3 times with exponential backoff"
+
+  # payment-callback:
+  #   idempotency-key: "orderId"
+  #   timeout: "15min auto-cancel"
+  #   delivery-retry: "≤3 times"
+
+  # external-api:
+  #   circuit-breaker: "open after 5 failures, half-open 30s"
+  #   rate-limit-backoff: "1s→2s→4s→8s"
+  #   timeout: "10s"

@@ -1,0 +1,22 @@
+# AI Context: 项目模块地图
+# Agent 在 Phase 2/3 自动加载此文件，理解模块边界和依赖关系
+# 维护者：Phase 2 架构设计阶段填写，后续持续更新
+
+project:
+  name: "<!-- 项目名 -->"
+  architecture: "<!-- layered-monolith / microservices / modular-monolith -->"
+  language: "<!-- java-17 / java-21 -->"
+  framework: "<!-- spring-boot-3.x -->"
+
+modules:
+  # 示例模块（请按实际项目替换）
+  # - name: order-module
+  #   responsibility: "订单创建、状态流转、查询"
+  #   expose:
+  #     - "POST /api/v1/orders"
+  #     - "GET /api/v1/orders/{id}"
+  #   forbidden:
+  #     - "直接访问其他模块的 Repository"
+  #   dependsOn:
+  #     - "user-module"
+  #     - "payment-module"

@@ -1,0 +1,41 @@
+# Farvis-AI 填写示例 — 业务规则
+rules:
+  video-generation:
+    description: "视频生成：提交脚本 + 参数 → 异步生成"
+    idempotency-key: "requestId"
+    unique-index: "uk_video_request_id"
+    credits-cost: 50
+    async-model: "webhook-primary + polling-fallback"
+    polling-interval: "10s"
+    timeout: "15min"
+    retry-policy: "exponential-backoff-3-times"
+
+  avatar-creation:
+    description: "数字分身创建：上传视频/照片 → 训练 → 授权 → 可用"
+    credits-cost: 100
+    lifecycle: "training → pending_auth → ready"
+    auth-expiry: "72h"
+    refund-policy: "failed → refund; expired → refund; rejected → no refund"
+
+  voice-clone:
+    description: "声音克隆：上传音频 → 训练 → 可用"
+    credits-cost: 50
+    min-audio-length: "10s"
+    quality-check: "noise-detection"
+    refund-policy: "failed → refund; poor quality → reject, no charge"
+
+  credits-deduction:
+    consistency: "db-transaction + optimistic-lock"
+    cache-policy: "redis-read-through"
+    cache-ttl: "5min"
+
+  heygen-api:
+    rate-limit-backoff: "1s→2s→4s→8s"
+    circuit-breaker: "open after 5 consecutive 5xx"
+    half-open-after: "30s"
+    content-review: "422 → prompt user to modify script, no charge"
+
+  payment:
+    order-idempotency: "order-id unique constraint"
+    order-timeout: "15min auto-cancel"
+    delivery-retry: "≤3 times, then create support ticket"

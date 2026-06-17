@@ -1,0 +1,172 @@
+# Prometheus 告警规则
+#
+# 使用方式：
+#   1. 将本文件挂载到 Prometheus 容器：
+#      docker run -d --name prometheus -p 9090:9090 \
+#        -v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml \
+#        -v $(pwd)/alert-rules.yml:/etc/prometheus/alert-rules.yml \
+#        prom/prometheus
+#   2. 配置 Alertmanager 推送告警（飞书/钉钉/邮件/PagerDuty）
+#
+# 告警级别：
+#   critical — 立即处理（影响用户/数据一致性）
+#   warning  — 需要关注（可能恶化）
+#   info     — 通知（运维可见）
+
+groups:
+  # ====== Outbox ======
+  - name: outbox
+    rules:
+      - alert: OutboxPendingHigh
+        expr: outbox_pending_count > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: outbox
+        annotations:
+          summary: "Outbox 待投递事件积压"
+          description: "应用 {{ $labels.application }} 的 Outbox 待投递事件数 = {{ $value }}，已持续 5 分钟。检查 OutboxDispatcher 是否正常运行。"
+
+      - alert: OutboxDeadLetter
+        expr: increase(outbox_dead_total[10m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          category: outbox
+        annotations:
+          summary: "Outbox 死信事件"
+          description: "应用 {{ $labels.application }} 过去 10 分钟出现了 {{ $value }} 条死信事件（event_type={{ $labels.event_type }}）。查看 .harness/ai-context/error-catalog.yaml 定位原因。"
+
+      - alert: OutboxLagHigh
+        expr: outbox_lag_seconds > 300
+        for: 10m
+        labels:
+          severity: warning
+          category: outbox
+        annotations:
+          summary: "Outbox 投递延迟过高"
+          description: "应用 {{ $labels.application }} 最旧待投递事件已等待 {{ $value }} 秒。检查下游消息队列是否正常。"
+
+  # ====== HTTP ======
+  - name: http
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) 
+          / 
+          sum(rate(http_server_requests_seconds_count[5m])) > 0.05
+        for: 1m
+        labels:
+          severity: critical
+          category: http
+        annotations:
+          summary: "HTTP 5xx 错误率 > 5%"
+          description: "应用 {{ $labels.application }} 5xx 错误率 = {{ $value | humanizePercentage }}。检查最近部署的变更、下游服务状态、数据库连接。"
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: warning
+          category: http
+        annotations:
+          summary: "HTTP P99 延迟 > 2s"
+          description: "应用 {{ $labels.application }} P99 延迟 = {{ $value }}s。检查数据库慢查询、外部 API 超时、GC 暂停。"
+
+      - alert: ApiDown
+        expr: up{job="spring-boot-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: http
+        annotations:
+          summary: "应用不可达"
+          description: "应用 {{ $labels.instance }} 的 /actuator/health 无响应。检查应用是否崩溃或网络不通。"
+
+  # ====== 外部 API ======
+  - name: external_api
+    rules:
+      - alert: CircuitBreakerOpen
+        expr: api_circuit_open_total > 0
+        for: 2m
+        labels:
+          severity: warning
+          category: external_api
+        annotations:
+          summary: "外部 API 熔断器打开"
+          description: "服务 {{ $labels.service }} 的熔断器已打开。检查该外部 API 是否可用，降级策略是否生效。"
+
+      - alert: ApiCallHighFailureRate
+        expr: |
+          sum(rate(api_call_total{outcome="failed"}[5m])) by (service) 
+          / 
+          sum(rate(api_call_total[5m])) by (service) > 0.10
+        for: 3m
+        labels:
+          severity: warning
+          category: external_api
+        annotations:
+          summary: "外部 API 调用失败率 > 10%"
+          description: "服务 {{ $labels.service }} 的 API 失败率 = {{ $value | humanizePercentage }}。即将触发熔断。"
+
+  # ====== JVM ======
+  - name: jvm
+    rules:
+      - alert: JvmHeapUsageHigh
+        expr: |
+          jvm_memory_used_bytes{area="heap"} 
+          / 
+          jvm_memory_max_bytes{area="heap"} > 0.90
+        for: 5m
+        labels:
+          severity: warning
+          category: jvm
+        annotations:
+          summary: "JVM 堆内存使用 > 90%"
+          description: "应用 {{ $labels.application }} 堆内存使用率 = {{ $value | humanizePercentage }}。检查是否有内存泄漏或大量缓存。"
+
+      - alert: JvmGcPauseHigh
+        expr: rate(jvm_gc_pause_seconds_sum[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          category: jvm
+        annotations:
+          summary: "JVM GC 暂停时间过高"
+          description: "应用 {{ $labels.application }} GC 暂停速率 = {{ $value }}s/s。考虑调整堆大小或 GC 策略。"
+
+      - alert: HikariPoolExhausted
+        expr: hikaricp_connections_pending > 5
+        for: 2m
+        labels:
+          severity: critical
+          category: jvm
+        annotations:
+          summary: "HikariCP 连接池耗尽"
+          description: "应用 {{ $labels.application }} 有 {{ $value }} 个线程等待数据库连接。检查是否有慢查询或连接泄漏。"
+
+  # ====== 业务指标（按项目自定义） ======
+  - name: business
+    rules:
+      # 示例：订单创建异常（按实际项目替换 metric 名称）
+      # - alert: OrderCreationFailure
+      #   expr: rate(order_created_total{status="failed"}[10m]) / rate(order_created_total[10m]) > 0.1
+      #   for: 5m
+      #   labels:
+      #     severity: warning
+      #     category: business
+      #   annotations:
+      #     summary: "订单创建失败率 > 10%"
+      #     description: "..."
+
+      # 示例：支付失败
+      # - alert: PaymentFailure
+      #   expr: rate(payment_failed_total[10m]) > 0.1
+      #   for: 5m
+      #   labels:
+      #     severity: critical
+      #     category: business
+      #   annotations:
+      #     summary: "支付失败率异常"
+      #     description: "..."

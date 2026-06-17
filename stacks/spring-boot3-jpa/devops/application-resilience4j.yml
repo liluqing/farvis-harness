@@ -1,0 +1,62 @@
+# Resilience4j 熔断器配置
+#
+# 对应 core/patterns/circuit-breaker.md 的 Spring Boot 实现。
+# 比 ExternalApiClient 内置的三态熔断器更丰富的功能：
+#   - 滑动窗口统计（基于时间/次数）
+#   - 慢调用也计入失败
+#   - 自动状态转换
+#   - 事件发布（可接 Metrics/告警）
+#
+# 使用方式：
+#   1. 添加依赖：implementation("io.github.resilience4j:resilience4j-spring-boot3")
+#   2. 在 application.yml 中引入：spring.config.import: classpath:application-resilience4j.yml
+#   3. 代码中使用 @CircuitBreaker 注解：
+#      @CircuitBreaker(name = "heygen", fallbackMethod = "heygenFallback")
+#      public VideoStatus getVideoStatus(String videoId) { ... }
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: COUNT_BASED    # 基于次数统计
+        sliding-window-size: 10             # 最近 10 次调用
+        failure-rate-threshold: 50          # 失败率 > 50% 打开熔断
+        slow-call-rate-threshold: 50         # 慢调用率 > 50% 也算失败
+        slow-call-duration-threshold: 5s     # > 5s 视为慢调用
+        wait-duration-in-open-state: 30s     # 半开等待 30s
+        permitted-number-of-calls-in-half-open-state: 3  # 半开允许 3 次探测
+        minimum-number-of-calls: 5           # 至少 5 次调用后才开始统计
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - org.springframework.web.client.RestClientException
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+        ignore-exceptions:
+          - com.example.infra.exception.BizException   # 业务异常不计入熔断
+
+    instances:
+      heygen:
+        base-config: default
+        failure-rate-threshold: 40          # HeyGen 更敏感
+        wait-duration-in-open-state: 60s    # HeyGen 等待更长
+
+      # 按外部服务配置不同参数
+      # wechat-pay:
+      #   base-config: default
+      #   failure-rate-threshold: 30
+
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 10s               # 超时熔断
+        cancel-running-future: true
+
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2    # 1s → 2s → 4s
+        retry-exceptions:
+          - org.springframework.web.client.RestClientException
+          - java.net.SocketTimeoutException

@@ -1,0 +1,189 @@
+{
+  "mappings": [
+    {
+      "id": "heygen-video-generation-success",
+      "name": "HeyGen 视频生成 - 成功提交",
+      "request": {
+        "method": "POST",
+        "url": "/v2/video.generate",
+        "headers": {
+          "X-Api-Key": {
+            "contains": "hey"
+          }
+        },
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": "$.avatar_id"
+          },
+          {
+            "matchesJsonPath": "$.text"
+          }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "code": 0,
+          "message": "success",
+          "data": {
+            "video_id": "video_abc123def456"
+          }
+        }
+      }
+    },
+    {
+      "id": "heygen-video-generation-duplicate",
+      "name": "HeyGen 视频生成 - 重复提交",
+      "request": {
+        "method": "POST",
+        "url": "/v2/video.generate",
+        "bodyPatterns": [
+          {
+            "equalToJson": "{\"avatar_id\":\"avatar_001\",\"text\":\"duplicate test\"}"
+          }
+        ]
+      },
+      "response": {
+        "status": 409,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "code": 409001,
+          "message": "A video generation is already in progress for this request"
+        }
+      }
+    },
+    {
+      "id": "heygen-video-status-completed",
+      "name": "HeyGen 查询视频状态 - 已完成",
+      "request": {
+        "method": "GET",
+        "url": "/v2/video_status.get?video_id=video_abc123def456"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "code": 0,
+          "message": "success",
+          "data": {
+            "video_id": "video_abc123def456",
+            "status": "completed",
+            "video_url": "https://cdn.heygen.com/videos/video_abc123def456.mp4",
+            "duration_seconds": 30,
+            "created_at": "2025-06-01T10:00:00Z",
+            "completed_at": "2025-06-01T10:02:30Z"
+          }
+        }
+      }
+    },
+    {
+      "id": "heygen-video-status-processing",
+      "name": "HeyGen 查询视频状态 - 处理中",
+      "request": {
+        "method": "GET",
+        "urlPath": "/v2/video_status.get",
+        "queryParameters": {
+          "video_id": {
+            "matches": "video_.*"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "code": 0,
+          "message": "success",
+          "data": {
+            "video_id": "{{request.query.video_id}}",
+            "status": "processing",
+            "progress_percent": 45,
+            "estimated_remaining_seconds": 60
+          }
+        },
+        "transformers": ["response-template"]
+      }
+    },
+    {
+      "id": "heygen-video-generation-timeout",
+      "name": "HeyGen 视频生成 - 模拟超时（测试熔断）",
+      "request": {
+        "method": "POST",
+        "url": "/v2/video.generate",
+        "bodyPatterns": [
+          {
+            "equalToJson": "{\"avatar_id\":\"avatar_timeout\",\"text\":\"timeout test\"}"
+          }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "fixedDelayMilliseconds": 31000,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "code": 0,
+          "data": {
+            "video_id": "video_timeout_xxx"
+          }
+        }
+      }
+    },
+    {
+      "id": "heygen-api-error-500",
+      "name": "HeyGen API - 服务端错误（验证重试+熔断）",
+      "request": {
+        "method": "POST",
+        "url": "/v2/video.generate",
+        "bodyPatterns": [
+          {
+            "equalToJson": "{\"avatar_id\":\"avatar_500\",\"text\":\"server error test\"}"
+          }
+        ]
+      },
+      "response": {
+        "status": 500,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "code": 500000,
+          "message": "Internal server error"
+        }
+      }
+    },
+    {
+      "id": "heygen-auth-error",
+      "name": "HeyGen API - 认证失败",
+      "request": {
+        "method": "POST",
+        "url": "/v2/video.generate",
+        "headers": {
+          "X-Api-Key": {
+            "equalTo": "invalid_key"
+          }
+        }
+      },
+      "response": {
+        "status": 401,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "code": 401000,
+          "message": "Invalid API key"
+        }
+      }
+    }
+  ]
+}

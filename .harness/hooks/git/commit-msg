@@ -1,0 +1,33 @@
+#!/bin/bash
+# Git commit-msg hook — 校验提交信息格式
+#
+# 软链接到 .git/hooks/commit-msg：
+#   ln -sf ../../.harness/hooks/git/commit-msg .git/hooks/commit-msg
+#
+# 约定格式：type(scope): description
+#   例：feat(order): 添加幂等创建接口
+#       fix(payment): 修复重复支付问题
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# 跳过 merge commit
+if echo "$COMMIT_MSG" | grep -qE '^Merge'; then
+    exit 0
+fi
+
+PATTERN='^(feat|fix|docs|style|refactor|test|chore|perf|ci)(\(.+\))?: .{1,}'
+
+if ! echo "$COMMIT_MSG" | head -1 | grep -qE "$PATTERN"; then
+    echo "❌ Commit message format invalid"
+    echo ""
+    echo "Expected: type(scope): description"
+    echo "Example:  feat(order): 添加幂等创建接口"
+    echo "          fix(payment): 修复重复支付问题"
+    echo ""
+    echo "Types: feat, fix, docs, style, refactor, test, chore, perf, ci"
+    exit 1
+fi
+
+echo "✅ Commit message format OK"
+exit 0

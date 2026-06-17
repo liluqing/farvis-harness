@@ -1,0 +1,87 @@
+spring:
+  profiles:
+    active: local
+
+  # ====== 数据源（docker compose 提供的真实 MySQL） ======
+  datasource:
+    url: jdbc:mysql://localhost:3306/app_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 5s
+      idle-timeout: 30s
+
+  # ====== JPA ======
+  jpa:
+    hibernate:
+      ddl-auto: validate          # 本地也用 validate，表由 init-sql 管理
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        # 本地开发可开 statistics 排查 N+1
+        # generate_statistics: true
+
+  # ====== Redis（docker compose 提供） ======
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 3s
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 4
+          min-idle: 1
+
+  # ====== 禁用未启用的中间件 ======
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+# ====== WireMock（外部 API 模拟） ======
+wiremock:
+  server:
+    port: 8089
+
+# ====== Actuator（本地开发暴露所有端点） ======
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,env,loggers
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name:app}
+      profile: local
+  # 本地不推 OTLP，只暴露 Prometheus 端点让本地 Prometheus 抓取
+
+# ====== 日志 ======
+logging:
+  level:
+    com.example: DEBUG            # 项目代码 DEBUG
+    org.springframework: INFO
+    org.springframework.web: DEBUG      # 请求/响应日志
+    org.hibernate.SQL: DEBUG             # SQL 日志（排查用）
+    org.hibernate.type.descriptor.sql: TRACE  # SQL 参数绑定
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{traceId}] - %msg%n"
+
+# ====== 业务配置（按项目填写） ======
+# app:
+#   external-api:
+#     heygen:
+#       base-url: http://localhost:8089   # WireMock
+#       api-key: test-key
+#       connect-timeout: 5s
+#       read-timeout: 30s

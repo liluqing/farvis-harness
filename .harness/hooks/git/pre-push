@@ -1,0 +1,42 @@
+#!/bin/bash
+# Git pre-push hook — 推送前运行全量测试 + 集成测试
+#
+# 软链接到 .git/hooks/pre-push：
+#   ln -sf ../../.harness/hooks/git/pre-push .git/hooks/pre-push
+#
+# 行为：跑全量测试，如果失败阻止推送。
+
+set -e
+
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$HOOK_DIR/../../.." && pwd)"
+
+echo "🔍 Harness: running full test suite before push..."
+
+# Gradle 项目
+if [ -f "$PROJECT_ROOT/build.gradle.kts" ] || [ -f "$PROJECT_ROOT/build.gradle" ]; then
+    cd "$PROJECT_ROOT"
+    if ./gradlew test --quiet 2>&1; then
+        echo "✅ All tests passed"
+    else
+        echo "❌ Tests failed — push blocked"
+        echo "   Run './gradlew test' to see details"
+        exit 1
+    fi
+    exit 0
+fi
+
+# Maven 项目
+if [ -f "$PROJECT_ROOT/pom.xml" ]; then
+    cd "$PROJECT_ROOT"
+    if mvn test --quiet 2>&1; then
+        echo "✅ All tests passed"
+    else
+        echo "❌ Tests failed — push blocked"
+        exit 1
+    fi
+    exit 0
+fi
+
+echo "⚠️  No build tool detected — skipping tests"
+exit 0

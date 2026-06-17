@@ -1,0 +1,24 @@
+# Annotation Processor 白名单
+#
+# 编译期只允许这些 AP 运行，防止 Agent 引入未审计的代码生成器。
+# 在 build.gradle.kts 中配置：
+#
+#   tasks.withType<JavaCompile>().configureEach {
+#       options.compilerArgs.addAll(listOf("-processor", "..."))
+#   }
+#
+# 或在 Maven pom.xml 的 maven-compiler-plugin 中配置。
+
+processors:
+  allowed:
+    - lombok.launch.AnnotationProcessorHider$AnnotationProcessor   # Lombok: @Data/@Builder/@Slf4j
+    - org.mapstruct.ap.spi.AstModifyingAnnotationProcessor         # MapStruct: @Mapper（按需启用）
+
+  # 如需新增 AP，在此添加并说明原因：
+  # - com.querydsl.apt.jpa.JPAAnnotationProcessor                  # QueryDSL: Q-class 生成（按需）
+  # - org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor         # JPA Metamodel（按需）
+
+  # 被禁止的 AP（自动生成代码的黑洞）：
+  prohibited:
+    - "未在此白名单中的任何 AP"
+    - "com.google.auto.*（AutoValue/AutoFactory 等，避免过度抽象）"

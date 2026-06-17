@@ -1,0 +1,49 @@
+# Docker Compose — 通用模板
+#
+# 本文件只定义结构，不含具体镜像版本。
+# 具体实现见 stacks/{stack}/devops/docker-compose.yml
+
+version: "3.9"
+
+services:
+  # 数据库（按项目替换）
+  database:
+    image: "<!-- mysql:8.0 / postgres:15 / mongo:7 -->"
+    container_name: harness-db
+    environment:
+      ROOT_PASSWORD: root
+      DATABASE: app_db
+    ports:
+      - "<!-- 3306 / 5432 -->:<!-- 3306 / 5432 -->"
+    volumes:
+      - ./init-sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "<!-- mysqladmin ping / pg_isready -->"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # 缓存（按项目替换）
+  cache:
+    image: "<!-- redis:7.2 / valkey:8 -->"
+    container_name: harness-cache
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "<!-- redis-cli ping -->"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # 外部 API 模拟（所有项目通用）
+  wiremock:
+    image: wiremock/wiremock:3.6.0
+    container_name: harness-wiremock
+    ports:
+      - "8089:8080"
+    volumes:
+      - ./wiremock/stubs:/home/wiremock/mappings
+
+  # 消息队列（按需启用）
+  # message-queue:
+  #   image: "<!-- kafka / rabbitmq -->"

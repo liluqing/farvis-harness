@@ -1,0 +1,40 @@
+# OpenTelemetry Tracing 配置
+#
+# 使用方式：
+#   1. 添加依赖（build.gradle.kts）：
+#      implementation("io.micrometer:micrometer-tracing-bridge-otel")
+#      implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+#   2. 在 application.yml 中引入本文件：spring.config.import: classpath:application-otel.yml
+#   3. 启动 Jaeger/OTel Collector：docker run -d --name jaeger -p 16686:16686 -p 4317:4317 jaegertracing/all-in-one
+#   4. 访问 http://localhost:16686 查看 Trace
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0            # 开发/测试 100%，生产建议 0.1
+    baggage:
+      remote-fields:
+        - traceId
+        - requestId               # 传递业务 requestId
+  observations:
+    key-values:
+      application: ${spring.application.name:app}
+
+# OTLP Exporter（推送到 Jaeger / OTel Collector / Grafana Tempo）
+otel:
+  traces:
+    exporter: otlp
+  exporter:
+    otlp:
+      endpoint: http://localhost:4317   # gRPC（Jaeger 默认端口）
+      # endpoint: http://localhost:4318 # HTTP（OTel Collector 默认端口）
+      protocol: grpc
+  resource:
+    attributes:
+      service.name: ${spring.application.name:app}
+      deployment.environment: ${spring.profiles.active:local}
+
+# 日志中注入 traceId + spanId（配合 logback-spring.xml 的 %X{traceId}）
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

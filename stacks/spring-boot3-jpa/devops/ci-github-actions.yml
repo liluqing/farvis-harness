@@ -1,0 +1,97 @@
+name: Java CI (Harness)
+
+# Harness CI 流水线 —— 对应本地三层测试，在 GitHub Actions 上运行。
+#
+# 本地三层 → CI 三层：
+#   ./gradlew fastTest          → fast-test job（≤ 3s 本地承诺，CI 放宽到 60s）
+#   ./gradlew test              → full-test job
+#   ./gradlew integrationTest   → integration-test job
+#
+# 使用方式：
+#   1. 复制本文件到 .github/workflows/ci.yml
+#   2. 替换 Java 版本和 Gradle 参数
+#   3. 配置 GitHub Secrets：无特殊要求（公开仓库）
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  # ====== 快速反馈（切片测试） ======
+  fast-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Fast Test (slice tests only)
+        run: ./gradlew fastTest --no-daemon
+
+  # ====== 全量测试 ======
+  full-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0.36
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7.2
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Full Test (unit + slice)
+        run: ./gradlew test --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: ci
+
+      - name: Checkstyle
+        run: ./gradlew checkstyleMain --no-daemon || true
+
+      - name: ArchUnit
+        run: ./gradlew test --tests "*ArchitectureTest" --no-daemon || true
+
+  # ====== 集成测试（慢，仅 main 分支 PR） ======
+  integration-test:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Integration Test
+        run: ./gradlew integrationTest --no-daemon

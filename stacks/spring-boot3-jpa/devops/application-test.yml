@@ -1,0 +1,47 @@
+spring:
+  profiles:
+    active: test
+
+  # ====== 数据源（通过 Testcontainers 动态注入） ======
+  datasource:
+    url: jdbc:tc:mysql:8.0.36:///test_db?TC_REUSABLE=true
+    username: test
+    password: test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+  # ====== JPA ======
+  jpa:
+    hibernate:
+      ddl-auto: validate        # 测试用 validate（不自动建表），表由 init-sql 管理
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # ====== Redis（Testcontainers 动态注入） ======
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 3s
+
+  # ====== 禁用生产中间件 ======
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+# ====== WireMock（外部 API 模拟） ======
+wiremock:
+  server:
+    port: 8089
+
+# ====== 日志 ======
+logging:
+  level:
+    com.example: DEBUG
+    org.springframework: INFO
+    org.hibernate.SQL: WARN
+    org.testcontainers: INFO
