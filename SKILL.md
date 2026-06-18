@@ -89,7 +89,7 @@ ls ~/docs/harness-research/farvis-harness/stacks/
 ### 3.1 创建目录
 
 ```bash
-mkdir -p <target>/.harness/{skills,hooks,ai-context,devops,infra,templates,principles,patterns}
+mkdir -p <target>/.harness/{skills,hooks,ai-context,devops,infra,templates,principles,patterns,flow}
 ```
 
 ### 3.2 复制 .harness/hooks/（Hook 脚本）
@@ -200,6 +200,14 @@ cp -r <repo>/stacks/{stack}/scripts/* <target>/.harness/scripts/
 ```
 
 包含 `parameterize.py`（模板参数化），后续修改模板后可重新运行。
+
+### 3.12 复制 flow/（开发流程定义）
+
+```bash
+cp -r <repo>/flow/* <target>/.harness/flow/
+```
+
+包含 Phase 1→4 的流程定义（flow.md + templates）、shared/（状态模板、TDD 五步）和 skill.md（流程总入口）。Agent 在项目内按流程开发时读这些文件。
 
 ---
 
@@ -318,6 +326,7 @@ tasks.register<Test>("fastTest") {
 - .harness/scripts/             → 工具脚本（parameterize.py 模板参数化）
 - .harness/principles/          → 五条方法论
 - .harness/patterns/            → 设计模式
+- .harness/flow/               → 开发流程定义（Phase 1→4 的 flow.md + templates + shared/）
 - AGENTS.md                     → Qoder / Codex 渐进披露入口（已更新）
 - CLAUDE.md                     → Claude Code 渐进披露入口（已更新）
 
