@@ -11,6 +11,9 @@ import java.time.Instant;
  *  2. 静态工厂方法 > 构造函数
  *  3. 审计字段统一（createdAt, updatedAt）
  *  4. 使用 @Builder（但谨慎，避免 Builder 绕过业务规则）
+ *  5. SQL 保留字规避：表名避免使用 user/order/group/key 等保留字，
+ *     如必须使用则加双引号（H2）或反引号（MySQL），
+ *     例如 @Table(name = "`order`") 或 @Table(name = "\"user\"")
  *
  * 使用方式：Phase 3 切片的实体类按此模板生成。
  */

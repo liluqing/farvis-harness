@@ -3,6 +3,11 @@
 # 初始化时 Agent 同时加载 core/ 和 stacks/ 的规则。
 
 rules:
+  # === JDK 版本与环境 ===
+
+  - "JDK 版本要求：Spring Boot 3.x 必须使用 JDK 21 LTS，不使用 JDK 25+（Lombok 等注解处理器不兼容）"
+  - "初始化项目时必须检查 JAVA_HOME 版本，如果不是 21 则提示用户切换"
+
   # === Spring Boot 特化 ===
 
   - "Controller 使用 @RestController，不是 @Controller + @ResponseBody"

@@ -3,6 +3,9 @@
 # 维护者：Phase 2 架构设计阶段填写，团队 Code Review 持续补充
 
 rules:
+  # 数据库命名
+  - "SQL 保留字规避：Entity 表名避免使用 user/order/group/key 等保留字，如必须使用则加双引号（H2）或反引号（MySQL）"
+
   # 分层约束
   - "Controller 不做业务编排，只做协议转换和参数校验"
   - "Service 层通过接口暴露，实现类命名 {Interface}Impl"

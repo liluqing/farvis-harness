@@ -85,6 +85,8 @@ STEP 4: 问题修复（如有）→ 回归
     ↓
 STEP 5: 输出测试报告
     ↓
+STEP 6: ai-context 同步检查
+    ↓
 交付
 ```
 
@@ -339,6 +341,77 @@ void contract_<provider>_<apiName>_<scenario>() {
 
 **结论：** 可交付 / 阻塞交付（<原因>）
 ```
+
+---
+
+## STEP 6：ai-context 同步检查
+
+> ⚠️ 在提交最终代码前，确保 ai-context 文件与实际代码保持一致。
+
+### 6.1 Diff ai-context 与实际代码变更
+
+Agent 对比以下 ai-context 文件与本次开发过程中的实际代码变更：
+
+| ai-context 文件 | 检查内容 |
+|----------------|----------|
+| `.harness/ai-context/project-map.yaml` 或 `core/ai-context/context.yaml` | 新增/删除的模块、API 端点变化、依赖关系变化 |
+| `.harness/ai-context/business-rules.yaml` | 新增的幂等键、缓存策略、并发控制、降级规则 |
+| `.harness/ai-context/error-catalog.yaml` | 新增的错误码（代码中 throw/return 的但目录中没有的） |
+| `.harness/ai-context/coding-rules.yaml` | 新的编码约定、被违反后修复的规则 |
+
+### 6.2 列出待同步项
+
+Agent 输出以下清单供用户确认：
+
+```
+【ai-context 同步检查报告】
+
+📋 新增错误码（X 个）：
+- NEW_ERROR_CODE_1: cause / action / http_status
+- NEW_ERROR_CODE_2: ...
+
+🔌 新增 API 端点（X 个）：
+- POST /api/v1/xxx → 归属模块 xxx-module
+- GET /api/v1/yyy → 归属模块 yyy-module
+
+📐 新增/变更业务规则（X 条）：
+- [规则名]: [规则描述]
+
+🗂️ 模块依赖变化（X 处）：
+- [模块A] 新增依赖 [模块B]
+
+⚠️ 编码规则补充（X 条）：
+- [新规则描述]
+
+无变化项：
+- [ ] project-map ✅ 无需更新
+- [ ] business-rules ✅ 无需更新
+- [ ] error-catalog ✅ 无需更新
+- [ ] coding-rules ✅ 无需更新
+```
+
+### 6.3 用户确认
+
+Agent 提示用户：
+
+```
+以上是本次开发中发现的 ai-context 待同步项。
+请确认是否需要更新 ai-context 文件？
+- 确认更新 → Agent 自动写入对应文件
+- 跳过 → 记录为 TODO，不阻塞交付
+```
+
+### 6.4 执行更新
+
+用户确认后，Agent：
+
+1. 将新增错误码追加到 `.harness/ai-context/error-catalog.yaml`
+2. 将新增 API 端点更新到 `.harness/ai-context/project-map.yaml`
+3. 将新增业务规则追加到 `.harness/ai-context/business-rules.yaml`
+4. 将编码规则补充追加到 `.harness/ai-context/coding-rules.yaml`
+5. 如果使用单文件版 `core/ai-context/context.yaml`，同步更新对应 section
+
+> 更新完成后，Agent 输出：「✅ ai-context 已同步：X 个错误码、Y 个 API 端点、Z 条业务规则已更新」
 
 ---
 
