@@ -82,13 +82,19 @@ public class BusinessMetricsTemplate {
 
     // ====== 带自定义标签的 Counter（按需扩展）==========
 
+    /** 缓存按标签区分的 Counter，避免重复注册 */
+    private final java.util.concurrent.ConcurrentHashMap<String, Counter> taggedCounters = new java.util.concurrent.ConcurrentHashMap<>();
+
     /**
-     * 按状态记录（如：success / failed / processing）
+     * 按状态记录（如：success / failed / processing）。
+     * 内部缓存 Counter 避免重复注册同名 meter。
      */
     public void recordWithStatus(MeterRegistry registry, String metricName, String status) {
-        Counter.builder(metricName)
-            .tag("status", status)
-            .register(registry)
-            .increment();
+        String cacheKey = metricName + "::" + status;
+        taggedCounters.computeIfAbsent(cacheKey, k ->
+            Counter.builder(metricName)
+                .tag("status", status)
+                .register(registry)
+        ).increment();
     }
 }

@@ -33,13 +33,27 @@ public class OutboxDispatcher {
     private final OutboxEventRepository eventRepository;
     // private final KafkaTemplate<String, String> kafkaTemplate;  // 按需替换
 
+    private volatile boolean messageQueueConfigured = false;
+
     public OutboxDispatcher(OutboxEventRepository eventRepository) {
         this.eventRepository = eventRepository;
+    }
+
+    /**
+     * 标记消息队列已配置。在子类或 @Configuration 中调用后才会实际投递。
+     * 未标记时 dispatch() 跳过投递并记录 WARN（仅首次）。
+     */
+    protected void markMessageQueueConfigured() {
+        this.messageQueueConfigured = true;
     }
 
     @Scheduled(fixedDelay = 1000)
     @Transactional
     public void dispatch() {
+        if (!messageQueueConfigured) {
+            log.warn("OutboxDispatcher: 消息队列未配置，跳过投递。请在子类中调用 markMessageQueueConfigured() 或替换 sendToMessageQueue()");
+            return;
+        }
         List<OutboxEvent> events = eventRepository
             .findTop100ByStatusInOrderByIdAsc(
                 List.of(OutboxEvent.Status.NEW, OutboxEvent.Status.RETRY)

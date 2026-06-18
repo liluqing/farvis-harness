@@ -9,7 +9,7 @@
 
 set -e
 
-HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+HOOK_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 PROJECT_ROOT="$(cd "$HOOK_DIR/../../.." && pwd)"
 
 echo "🔍 Harness: running fastTest..."
@@ -17,6 +17,11 @@ echo "🔍 Harness: running fastTest..."
 # Gradle 项目
 if [ -f "$PROJECT_ROOT/build.gradle.kts" ] || [ -f "$PROJECT_ROOT/build.gradle" ]; then
     cd "$PROJECT_ROOT"
+    # 检查 fastTest task 是否存在
+    if ! ./gradlew tasks --all 2>/dev/null | grep -q "fastTest"; then
+        echo "⚠️  fastTest task 不存在 — 请在 build.gradle.kts 中添加 fastTest task（参考 .harness/devops/build.gradle.kts）"
+        exit 0
+    fi
     if ./gradlew fastTest --quiet 2>&1; then
         echo "✅ fastTest passed"
     else

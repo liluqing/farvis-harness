@@ -8,7 +8,7 @@
 
 set -e
 
-HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+HOOK_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 PROJECT_ROOT="$(cd "$HOOK_DIR/../../.." && pwd)"
 
 echo "🔍 Harness: running full test suite before push..."

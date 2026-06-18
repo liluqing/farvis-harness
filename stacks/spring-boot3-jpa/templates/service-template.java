@@ -24,12 +24,12 @@ public class ResourceApplicationService {
 
     private final IdempotencyService idempotencyService;
     private final ResourceDomainService domainService;
-    private final ResourceMetrics metrics;
+    private final BusinessMetricsTemplate metrics;
 
     public ResourceApplicationService(
         IdempotencyService idempotencyService,
         ResourceDomainService domainService,
-        ResourceMetrics metrics
+        BusinessMetricsTemplate metrics
     ) {
         this.idempotencyService = idempotencyService;
         this.domainService = domainService;
@@ -53,7 +53,7 @@ public class ResourceApplicationService {
         String idempotencyKey = "resource:create:" + command.requestId();
         if (!idempotencyService.tryAcquire(idempotencyKey, java.time.Duration.ofMinutes(10))) {
             log.info("Idempotent hit: requestId={}", command.requestId());
-            metrics.recordDuplicate();
+            metrics.recordIdempotencyHit();
             return domainService.findByRequestId(command.requestId());
         }
 

@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [0.3.1] - 2026-06-18
+
+### Fixed（开发者体验闭环修复）
+- 🔴 **SKILL.md cp -r 嵌套目录**：STEP 3.7/3.9/3.10/3.11 全部改用 `/*` 避免嵌套（devops/devops/、templates/templates/、scripts/scripts/、principles/principles/、patterns/patterns/）
+- 🔴 **application-test.yml ddl-auto**：`validate` → `create-drop`，Testcontainers 空库可自动建表
+- 🔴 **init-sql DATETIME→DATETIME(6)**：兼容 Hibernate 6 Instant 映射
+- 🔴 **pre-commit hook fastTest fallback**：fastTest task 不存在时 warn 跳过而非 block
+- 🔴 **OutboxDispatcher 空跑保护**：未配置消息队列时 dispatch() 跳过 + WARN
+- 🟡 **BusinessMetricsTemplate Counter 重复注册**：`recordWithStatus()` 改用 ConcurrentHashMap 缓存
+- 🟡 **service-template 类名**：`ResourceMetrics` → `BusinessMetricsTemplate`，`recordDuplicate()` → `recordIdempotencyHit()`
+- 🟡 **harness-java.md 文件名**：`coding-rules-spring-boot.yaml` → `coding-rules-spring-boot3-jpa.yaml`
+- 🟢 **SKILL.md cp -n→--no-clobber**：消除 GNU cp warning
+- 🟢 **SKILL.md AGENTS.md 重复追加**：STEP 5.2 增加「## Harness」已存在则跳过
+- 🟡 **pre-commit/pre-push hook 路径解析**：`$0` 改用 `readlink -f` 解析 symlink，避免 `.git/hooks/` vs `.harness/hooks/git/` 路径歧义
+
 ## [0.3.0] - 2026-06-17
 
 ### Added

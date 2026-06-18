@@ -149,20 +149,21 @@ ln -sf ../../.harness/skills/harness-java.md <target>/.agents/skills/harness-jav
 ### 3.6 复制 core/ai-context/（通用规则）
 
 ```bash
-cp -n <repo>/core/ai-context/project-map.yaml    → <target>/.harness/ai-context/
-cp -n <repo>/core/ai-context/business-rules.yaml  → <target>/.harness/ai-context/
-cp -n <repo>/core/ai-context/error-catalog.yaml   → <target>/.harness/ai-context/
-cp -n <repo>/core/ai-context/coding-rules.yaml    → <target>/.harness/ai-context/
+cp --no-clobber <repo>/core/ai-context/project-map.yaml    <target>/.harness/ai-context/
+cp --no-clobber <repo>/core/ai-context/business-rules.yaml  <target>/.harness/ai-context/
+cp --no-clobber <repo>/core/ai-context/error-catalog.yaml   <target>/.harness/ai-context/
+cp --no-clobber <repo>/core/ai-context/coding-rules.yaml    <target>/.harness/ai-context/
 # Stack 特化规则。命名：coding-rules-{stack}.yaml
 #   例：spring-boot3-jpa → coding-rules-spring-boot3-jpa.yaml
-cp -n <repo>/stacks/{stack}/coding-rules.yaml → <target>/.harness/ai-context/coding-rules-{stack}.yaml
+cp --no-clobber <repo>/stacks/{stack}/coding-rules.yaml <target>/.harness/ai-context/coding-rules-{stack}.yaml
 ```
 
 ### 3.7 复制 stack/devops/
 
 ```bash
 # 复制 devops 下所有文件（排除 build.gradle.kts，它作为建议配置写入 AGENTS.md）
-cp -r <repo>/stacks/{stack}/devops/ <target>/.harness/devops/
+# 注意：用 devops/* 而非 devops/，避免 .harness/devops/ 已存在时产生嵌套 .harness/devops/devops/
+cp -r <repo>/stacks/{stack}/devops/* <target>/.harness/devops/
 rm -f <target>/.harness/devops/build.gradle.kts
 chmod +x <target>/.harness/devops/env-check.sh
 chmod +x <target>/.harness/devops/env-reset.sh
@@ -179,20 +180,23 @@ cp -r <repo>/stacks/{stack}/infra/* → <target>/.harness/infra/
 ### 3.9 复制 stack/templates/
 
 ```bash
-cp -r <repo>/stacks/{stack}/templates/ → <target>/.harness/templates/
+# 注意：用 templates/* 而非 templates/，避免嵌套
+cp -r <repo>/stacks/{stack}/templates/* <target>/.harness/templates/
 ```
 
 ### 3.10 复制 core/principles/ + core/patterns/（Agent 参考）
 
 ```bash
-cp -r <repo>/core/principles/ → <target>/.harness/principles/
-cp -r <repo>/core/patterns/   → <target>/.harness/patterns/
+# 注意：用 */ 的内容复制（/*），避免嵌套
+cp -r <repo>/core/principles/* <target>/.harness/principles/
+cp -r <repo>/core/patterns/*   <target>/.harness/patterns/
 ```
 
 ### 3.11 复制 scripts/（工具脚本）
 
 ```bash
-cp -r <repo>/stacks/{stack}/scripts/ → <target>/.harness/scripts/
+# 注意：用 scripts/* 而非 scripts/，避免嵌套
+cp -r <repo>/stacks/{stack}/scripts/* <target>/.harness/scripts/
 ```
 
 包含 `parameterize.py`（模板参数化），后续修改模板后可重新运行。
@@ -289,9 +293,11 @@ tasks.register<Test>("fastTest") {
 ```
 ```
 
-### 5.2 如果文件已存在 → 追加 Harness 段
+### 5.2 如果文件已存在 → 检查后追加 Harness 段
 
-读取已有 AGENTS.md / CLAUDE.md → 在末尾追加 `## Harness` 段（与新建内容相同，但不覆盖已有内容）。
+读取已有 AGENTS.md / CLAUDE.md：
+- 如果已包含「## Harness」章节 → 跳过，不重复写入
+- 如果不包含 → 在末尾追加 `## Harness` 段（与新建内容相同，但不覆盖已有内容）
 
 ---
 

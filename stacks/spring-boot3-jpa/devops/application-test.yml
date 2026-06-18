@@ -15,7 +15,7 @@ spring:
   # ====== JPA ======
   jpa:
     hibernate:
-      ddl-auto: validate        # 测试用 validate（不自动建表），表由 init-sql 管理
+      ddl-auto: create-drop    # 测试用 create-drop（Testcontainers 空库自动建表），init-sql 表供 docker-compose 本地环境使用
     show-sql: false
     properties:
       hibernate:

@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS outbox_events (
     status          VARCHAR(20)   NOT NULL DEFAULT 'NEW' COMMENT 'NEW / SENT / RETRY / DEAD',
     retry_count     INT           NOT NULL DEFAULT 0 COMMENT '已重试次数',
     last_error      VARCHAR(2000) NULL     COMMENT '最后一次错误信息',
-    created_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at      DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at      DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
 
     INDEX idx_outbox_status (status, id),
     INDEX idx_outbox_aggregate (aggregate_id)

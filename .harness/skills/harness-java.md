@@ -30,7 +30,7 @@ triggers:
 .harness/ai-context/error-catalog.yaml  → 错误码
 ```
 
-如果有 stack 特化规则，也一起读（如 `.harness/ai-context/coding-rules-spring-boot.yaml`）。
+如果有 stack 特化规则，也一起读（如 `.harness/ai-context/coding-rules-spring-boot3-jpa.yaml`）。
 
 ### 1a. 上下文为空时的退化路径
 
