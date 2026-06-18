@@ -266,9 +266,19 @@ Agent 分析失败日志
 
 ## 切片间推进
 
-一个切片 TDD + 自验通过后：
+一个切片 TDD 五步完成后，执行**切片级自验**：
 
-1. 更新 `shared/state.json`（标记切片完成）
+**切片级自验：**
+```bash
+./gradlew test --tests "当前切片的测试类" --tests "之前已完成切片的测试类"
+```
+- 目的：确认本切片没搞坏之前的切片
+- 通过 → 继续推进
+- 失败 → 进入自修循环
+
+切片级自验通过后：
+
+1. 更新 `.harness/flow/shared/state.json`（标记切片完成）
 2. 通报用户进度：「✅ 切片 N/M 完成：<名称>。继续下一切片：<名称>」
 3. **不停下来等确认** — 直接开始下一切片（除非是第一个切片，让用户知道节奏）
 
@@ -276,9 +286,9 @@ Agent 分析失败日志
 
 ---
 
-## 阶段 ④ 自验
+## 阶段 ④ 自验（最终回归）
 
-> ⚠️ 这是自验，不是集成测试。Phase 4 才是集成测试。
+> ⚠️ 这是**全部切片完成后**的最终回归自验，不是切片级的。Phase 4 才是集成测试。
 
 | 维度 | Phase 3 自验 | Phase 4 集成测试 |
 |------|------|------|
@@ -309,11 +319,25 @@ Agent 分析失败日志
 
 PRD 拆解的所有切片完成 + 自验通过 → 进入 Phase 4 集成测试
 
+### Phase 3 完成
+
+所有任务/切片完成 + 自验通过，Agent 输出：
+
+```
+✅ Phase 3 完成。全部 X 个切片开发完毕，自验通过。
+
+下一步：
+- Agent 将自动加载 Phase 4（集成测试）
+- 测试计划概要会先给你确认
+```
+
+**是否需要用户触发：** 否。Agent 自动进入 Phase 4（Phase 4 内部会先输出测试计划等用户确认再执行）。
+
 ### 状态跟踪
 
-每完成切片 → 更新 `shared/state.json`：
+每完成切片 → 更新 `.harness/flow/shared/state.json`：
 - 记录切片状态（pending/in_progress/completed/failed）
 - 记录自修次数（self_repair_count）
 - 记录升级状态（escalated: true/false）
 
-模板见 `shared/state.json`。
+模板见 `.harness/flow/shared/state.json`。

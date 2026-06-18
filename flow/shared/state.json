@@ -8,14 +8,14 @@
     "completed_at": null
   },
   "phases": {
-    "phase1_product": {
+    "phase1": {
       "status": "pending",
       "outputs": {
         "prd": null,
         "prototype": null
       }
     },
-    "phase2_architecture": {
+    "phase2": {
       "status": "skipped",
       "outputs": {
         "architecture_doc": null,
@@ -23,15 +23,18 @@
         "global_design": null
       }
     },
-    "phase3_dev": {
+    "phase3": {
       "status": "pending",
-      "slices": [],
-      "current_slice": null
+      "current_slice": null,
+      "total_tasks": 0,
+      "completed_tasks": 0
     },
-    "phase4_integration": {
+    "phase4": {
       "status": "pending",
       "outputs": {
-        "test_report": null
+        "test_report": null,
+        "pass_count": 0,
+        "fail_count": 0
       }
     }
   },
@@ -40,6 +43,7 @@
       "id": "slice_1",
       "name": "<切片名>",
       "description": "<一句话描述>",
+      "task_id": null,
       "depends_on": [],
       "status": "pending",
       "tdd_step": null,

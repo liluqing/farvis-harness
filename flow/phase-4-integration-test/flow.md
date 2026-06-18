@@ -12,7 +12,16 @@
 
 Phase 4 启动时，Agent 先做三件事：
 
-### 0. Harness 预检（Java 项目）
+### 0. 读取状态文件
+
+读取 `.harness/flow/shared/state.json`，确认：
+- `phases.phase3.status` 为 "completed"
+- `slices` 中所有切片状态为 "completed"
+- `phases.phase3.completed_tasks` 数量与 `phases.phase3.total_tasks` 一致
+
+如果状态文件不存在或状态不符合要求 → 提示用户「Phase 3 尚未完成，无法进入集成测试」。
+
+### 1. Harness 预检（Java 项目）
 
 如果项目根目录存在 `.harness/`，**优先加载**：
 
@@ -25,7 +34,7 @@ Phase 4 启动时，Agent 先做三件事：
 
 加载后输出：「已加载 `.harness/ai-context/`：X 个模块、Y 条业务规则、Z 个错误码」
 
-### 1. 确认前置条件
+### 2. 确认前置条件
 
 - [ ] Phase 3 所有任务代码已合并
 - [ ] `./gradlew fastTest` 全部 GREEN（如有 Harness）
@@ -33,7 +42,7 @@ Phase 4 启动时，Agent 先做三件事：
 
 > 如果 `env-check.sh` 不存在或无 `.harness/`，手动检查 `docker compose ps`。
 
-### 2. 确认产出目标
+### 3. 确认产出目标
 
 Phase 4 的使命：**全量端到端验证，证明整个系统可工作。**
 
@@ -345,10 +354,27 @@ void contract_<provider>_<apiName>_<scenario>() {
 - [ ] `.harness/ai-context/error-catalog.yaml` 中每个错误码至少一个用例 PASS（如项目已接入 Harness）
 - [ ] 新增错误码已补充到 error-catalog.yaml（如有）
 
-### 交付
+### 交付与迭代结束
 
 Agent 输出：
-> **Phase 4 完成。** 集成测试报告已就绪。X 个场景 PASS，Y 个 FAIL（Z 个不可修复）。可以交付。
+
+```
+✅ 迭代 1 完成。集成测试报告已就绪。
+
+测试结果：
+- X 个场景 PASS
+- Y 个 FAIL（Z 个不可修复）
+
+下一步建议：
+- 如果可交付：说「开始迭代 2」进入下一个需求
+- 如果有阻塞项：先处理不可修复项，再说「重新跑集成测试」
+```
+
+**迭代状态更新：**
+- 更新 `.harness/flow/shared/state.json`：`iteration.status` 设为 "completed"
+- 如果开始新迭代，`iteration.id` +1，`iteration.status` 重置为 "in_progress"
+
+**是否需要用户触发：** 是。迭代结束后必须等用户决定下一个迭代的需求。
 
 ### Harness 回归（如项目已接入 Java Harness）
 
