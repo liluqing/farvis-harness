@@ -2,7 +2,7 @@
 
 > **执行时间：** <!-- YYYY-MM-DD HH:MM -->
 > **执行者：** Agent (harness-dev-flow, Phase 4)
-> **关联 PRD：** <!-- prd/xxx-prd.md -->
+> **关联 PRD：** <!-- docs/product/prd-xxx.md -->
 > **版本：** v1.0
 
 ---

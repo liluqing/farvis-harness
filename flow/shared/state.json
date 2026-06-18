@@ -1,47 +1,70 @@
 {
-  "feature": "<功能名>",
   "project": "<项目名>",
-  "status": "in_progress",
-  "current_phase": "product",
+  "iteration": {
+    "id": 1,
+    "goal": "<一句话描述本迭代目标>",
+    "status": "in_progress",
+    "started_at": null,
+    "completed_at": null
+  },
   "phases": {
-    "product": "in_progress",
-    "prototype": "pending",
-    "architecture": "pending",
-    "spec": "pending",
-    "design": "pending",
-    "ui_design": "skipped",
-    "integration": "pending"
-  },
-  "product": {
-    "prd_path": null,
-    "prototype_path": null,
-    "product_type": null,
-    "pending_confirmations": [],
-    "frozen_items": [],
-    "confirmed_at": null
-  },
-  "slices": {
-    "slice_A": {
-      "endpoint": "POST /api/v1/xxx",
+    "phase1_product": {
       "status": "pending",
-      "started": null,
-      "completed": null,
-      "duration_min": null
+      "outputs": {
+        "prd": null,
+        "prototype": null
+      }
+    },
+    "phase2_architecture": {
+      "status": "skipped",
+      "outputs": {
+        "architecture_doc": null,
+        "task_list": null,
+        "global_design": null
+      }
+    },
+    "phase3_dev": {
+      "status": "pending",
+      "slices": [],
+      "current_slice": null
+    },
+    "phase4_integration": {
+      "status": "pending",
+      "outputs": {
+        "test_report": null
+      }
     }
   },
+  "slices": [
+    {
+      "id": "slice_1",
+      "name": "<切片名>",
+      "description": "<一句话描述>",
+      "depends_on": [],
+      "status": "pending",
+      "tdd_step": null,
+      "self_repair_count": 0,
+      "escalated": false,
+      "started_at": null,
+      "completed_at": null
+    }
+  ],
   "artifacts": {
     "prd": null,
     "prototype": null,
-    "spec": null,
-    "design": null,
+    "architecture": null,
+    "task_list": null,
+    "global_design": null,
+    "specs": [],
+    "test_report": null,
     "pr_branch": null
   },
   "metrics": {
-    "spec_rounds": 0,
-    "design_fixes": 0,
-    "deviations": [],
-    "phase1_duration_min": null,
+    "iteration_duration_min": null,
+    "total_slices": 0,
+    "completed_slices": 0,
+    "total_self_repairs": 0,
+    "total_escalations": 0,
     "phase1_rounds": 0
-  },
-  "session_ids": []
+  }
 }

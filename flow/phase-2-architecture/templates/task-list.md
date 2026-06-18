@@ -1,6 +1,6 @@
 # 任务清单: <!-- 项目/功能名 -->
 
-> **关联 PRD：** <!-- prd/xxx-prd.md -->
+> **关联 PRD：** <!-- docs/product/prd-xxx.md -->
 > **关联架构：** <!-- architecture-xxx.md -->
 > **版本：** v1.0 · <!-- 日期 -->
 
