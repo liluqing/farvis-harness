@@ -155,9 +155,11 @@ Agent 拆完后，输出给用户确认：
 
 ## ③ 逐切片开发
 
-### Spec 决策树（阶段 ③Spec 分析）
+每个切片按以下流程执行：
 
-核心原则从 `rules/decision-boundary.md`：
+### Spec 分析（决策树）
+
+对每个切片的需求进行分析，决策树遵循 `rules/decision-boundary.md`：
 
 | 分支 | 触发条件 | 处理方式 |
 |:----|------|------|
@@ -166,6 +168,23 @@ Agent 拆完后，输出给用户确认：
 | **C：暂定 + 标记** | 既不满足 A 也不满足 B | 用最通用做法，标注 `[待确认]` |
 
 决策点上限：分支 B 每轮 ≤ 3 个，超过的走分支 C。
+
+### 技术设计（API + Entity + DB）
+
+Spec 分析完成后，产出技术设计文档：
+
+**写入路径：** `docs/design/design-<任务名>-<切片名>.md`
+
+**示例：**
+- 任务 T1（用户模块），切片 1（创建用户）→ `docs/design/design-user-create-user.md`
+- 任务 T1（用户模块），切片 2（查询用户列表）→ `docs/design/design-user-list-users.md`
+
+**模板：** 参考 `templates/design.md`
+
+**内容包含：**
+- API 契约（Request/Response/Error）
+- 领域模型（Entity 字段、Repository 方法）
+- 数据库（表结构、索引、外键）
 
 ### TDD 五步
 
@@ -279,8 +298,22 @@ Agent 分析失败日志
 
 ## 退出条件
 
-全部切片 TDD 完成 + 自验通过 → 进入 Phase 4（集成测试）或下一个任务。
+### 单任务完成（Phase 2 存在时）
 
-## 状态跟踪
+一个任务（T1/T2/T3...）的所有切片完成 + 自验通过：
+- 检查任务清单是否还有下一个任务
+- 有 → 继续处理下一个任务（回到步骤 ① 需求理解）
+- 无 → 所有任务完成，进入 Phase 4 集成测试
 
-每完成切片 → 更新 `shared/state.json`。模板见 `shared/state.json`。
+### 单任务完成（Phase 2 跳过时）
+
+PRD 拆解的所有切片完成 + 自验通过 → 进入 Phase 4 集成测试
+
+### 状态跟踪
+
+每完成切片 → 更新 `shared/state.json`：
+- 记录切片状态（pending/in_progress/completed/failed）
+- 记录自修次数（self_repair_count）
+- 记录升级状态（escalated: true/false）
+
+模板见 `shared/state.json`。
