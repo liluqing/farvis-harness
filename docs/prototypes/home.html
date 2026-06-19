@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farvis-AI - AI 数字人视频生成平台</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: #1a1a1a; background: #fff; line-height: 1.6; }
+a { text-decoration: none; color: inherit; }
+button { border: none; cursor: pointer; font-family: inherit; background: none; }
+img { display: block; max-width: 100%; }
+
+/* ===== Header ===== */
+.header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 60px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.header-left { display: flex; align-items: center; gap: 36px; }
+.logo { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800; color: #1a1a1a; }
+.logo-dot { width: 28px; height: 28px; border-radius: 7px; background: linear-gradient(135deg, #ff6a3d, #ff8f65); }
+.nav { display: flex; gap: 6px; }
+.nav a { padding: 7px 14px; border-radius: 6px; font-size: 14px; color: #555; transition: all 0.15s; }
+.nav a:hover { color: #1a1a1a; background: #f5f5f5; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.h-btn { padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.h-btn.outline { border: 1px solid #ddd; color: #555; }
+.h-btn.outline:hover { border-color: #bbb; color: #333; }
+.h-btn.filled { background: #1a1a1a; color: #fff; }
+.h-btn.filled:hover { background: #333; }
+
+/* ===== Hero ===== */
+.hero {
+  position: relative; height: 520px; margin-top: 60px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+}
+.hero-bg::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(255,106,61,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 40%, rgba(255,143,101,0.1) 0%, transparent 50%);
+}
+.hero-images {
+  position: absolute; inset: 0; display: flex; overflow: hidden;
+}
+.hero-img {
+  flex: 1; position: relative;
+  background-size: cover; background-position: center;
+}
+.hero-img::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%);
+}
+.hero-content {
+  position: relative; z-index: 2; text-align: center; color: #fff;
+  padding: 0 24px;
+}
+.hero h1 { font-size: 48px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
+.hero h1 span { color: #ff8f65; }
+.hero .sub { font-size: 18px; color: rgba(255,255,255,0.75); margin-bottom: 28px; }
+.hero-cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 36px; border-radius: 12px;
+  background: #fff; color: #1a1a1a;
+  font-size: 16px; font-weight: 700;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.hero-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+.hero-tags { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.5); }
+
+/* ===== Section ===== */
+.section { padding: 80px 40px; }
+.section-center { text-align: center; }
+.sec-tag {
+  display: inline-block; font-size: 12px; font-weight: 600;
+  color: #ff6a3d; background: #fff5f0; padding: 4px 12px;
+  border-radius: 20px; margin-bottom: 12px;
+}
+.sec-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+.sec-desc { font-size: 15px; color: #888; max-width: 480px; margin: 0 auto 32px; }
+
+/* ===== Category Cards ===== */
+.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
+.cat-card {
+  border-radius: 14px; overflow: hidden; cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.cat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+.cat-thumb {
+  height: 160px; position: relative;
+  display: flex; align-items: flex-end; padding: 16px;
+}
+.cat-thumb::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(transparent 40%, rgba(0,0,0,0.65));
+}
+.cat-name {
+  position: relative; z-index: 1; color: #fff;
+  font-size: 16px; font-weight: 700;
+}
+.cat-features { padding: 16px; background: #fff; border: 1px solid #f0f0f0; border-top: none; border-radius: 0 0 14px 14px; }
+.cf-item { display: flex; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+.cf-label { font-weight: 700; color: #333; white-space: nowrap; }
+.cf-desc { color: #999; }
+
+/* ===== Feature Row ===== */
+.feat-row { display: flex; align-items: center; gap: 60px; max-width: 1100px; margin: 0 auto; }
+.feat-row.reverse { flex-direction: row-reverse; }
+.feat-visual {
+  flex: 1; border-radius: 16px; overflow: hidden;
+  position: relative; min-height: 320px;
+}
+.feat-visual-bg {
+  width: 100%; height: 100%; position: absolute; inset: 0;
+}
+.feat-info { flex: 1; }
+.feat-info h3 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+.feat-info p { font-size: 14px; color: #888; line-height: 1.8; margin-bottom: 20px; }
+.feat-btn {
+  display: inline-flex; padding: 10px 24px; border-radius: 8px;
+  background: #1a1a1a; color: #fff; font-size: 14px; font-weight: 600;
+  transition: background 0.15s;
+}
+.feat-btn:hover { background: #333; }
+
+/* ===== Avatar Grid (IP商店) ===== */
+.av-showcase { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; max-width: 900px; margin: 0 auto; }
+.av-item {
+  aspect-ratio: 3/4; border-radius: 12px; overflow: hidden;
+  position: relative; cursor: pointer;
+  transition: transform 0.2s;
+}
+.av-item:hover { transform: scale(1.03); }
+.av-item-bg {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 48px;
+}
+.av-item .av-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 16px 8px 8px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+  color: #fff; font-size: 11px; font-weight: 600; text-align: center;
+}
+
+/* ===== Voice Clone Visual ===== */
+.voice-visual {
+  display: flex; gap: 16px; align-items: center;
+  justify-content: center; flex-wrap: wrap;
+}
+.voice-phone {
+  width: 200px; height: 340px; border-radius: 24px;
+  overflow: hidden; position: relative;
+  background: #f5f5f5; border: 3px solid #e0e0e0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 64px;
+}
+.voice-card-float {
+  padding: 20px 24px; border-radius: 14px;
+  background: #1a1a1a; color: #fff;
+  max-width: 260px;
+}
+.voice-card-float h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.voice-card-float p { font-size: 13px; color: #aaa; margin-bottom: 14px; }
+.wave-bars { display: flex; gap: 3px; align-items: end; height: 32px; }
+.wave-bars span { width: 3px; border-radius: 2px; background: #4ade80; }
+.lang-flags { display: flex; gap: 6px; margin-top: 12px; }
+.lang-flags span {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); display: flex;
+  align-items: center; justify-content: center; font-size: 12px;
+}
+
+/* ===== Brand Strip ===== */
+.brand-strip {
+  padding: 40px; background: #f9fafb;
+  border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;
+}
+.brand-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 40px; flex-wrap: wrap; max-width: 1100px; margin: 0 auto;
+}
+.brand-logo {
+  padding: 8px 20px; border-radius: 8px;
+  font-size: 14px; font-weight: 700; color: #999;
+  background: #fff; border: 1px solid #eee;
+}
+
+/* ===== Testimonial ===== */
+.testimonial {
+  max-width: 900px; margin: 0 auto;
+  display: flex; gap: 40px; align-items: center;
+  background: #f9fafb; border-radius: 20px; padding: 40px;
+}
+.testi-avatar {
+  width: 200px; height: 240px; border-radius: 16px;
+  flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 80px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+}
+.testi-info { flex: 1; }
+.testi-info h4 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.testi-info .role { font-size: 14px; color: #999; margin-bottom: 16px; }
+.testi-info blockquote {
+  font-size: 14px; color: #555; line-height: 1.8;
+  border-left: 3px solid #ff6a3d; padding-left: 16px;
+  margin-bottom: 20px;
+}
+.testi-btn {
+  padding: 10px 28px; border-radius: 8px;
+  background: #1a1a1a; color: #fff;
+  font-size: 14px; font-weight: 600;
+}
+
+/* ===== Footer ===== */
+.footer { padding: 60px 40px 30px; background: #1a1a1a; color: #999; }
+.footer-grid {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 40px; max-width: 1100px; margin: 0 auto 40px;
+}
+.footer-brand .logo { color: #fff; margin-bottom: 12px; }
+.footer-brand p { font-size: 13px; line-height: 1.7; color: #666; }
+.footer-col h5 { font-size: 13px; font-weight: 700; color: #ccc; margin-bottom: 14px; }
+.footer-col a { display: block; font-size: 13px; color: #666; padding: 3px 0; transition: color 0.15s; }
+.footer-col a:hover { color: #fff; }
+.footer-bottom {
+  text-align: center; padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 12px; color: #555;
+}
+.footer-qr { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
+.qr-box {
+  width: 80px; height: 80px; border-radius: 8px;
+  background: #333; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; color: #666; text-align: center;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .cat-grid { grid-template-columns: repeat(2, 1fr); }
+  .feat-row, .feat-row.reverse { flex-direction: column; }
+  .av-showcase { grid-template-columns: repeat(3, 1fr); }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .nav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo"><div class="logo-dot"></div>Farvis-AI</div>
+    <nav class="nav">
+      <a href="#features">产品功能</a>
+      <a href="#avatars">数字人</a>
+      <a href="#voice">语音克隆</a>
+      <a href="#cases">案例</a>
+      <a href="#pricing">定价</a>
+    </nav>
+  </div>
+  <div class="header-right">
+    <button class="h-btn outline" onclick="location.href='prototype.html'">登录</button>
+    <button class="h-btn filled" onclick="location.href='prototype.html'">免费体验</button>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-images">
+    <div class="hero-img" style="background:linear-gradient(135deg,#2d1b4e,#1a1a2e);"></div>
+    <div class="hero-img" style="background:linear-gradient(135deg,#1a2332,#16213e);"></div>
+    <div class="hero-img" style="background:linear-gradient(135deg,#1b2838,#0f3460);"></div>
+    <div class="hero-img" style="background:linear-gradient(135deg,#2d1b4e,#1a1a2e);"></div>
+  </div>
+  <div class="hero-content">
+    <h1>做内容获客，用 <span>Farvis-AI</span></h1>
+    <div class="sub">AI 驱动的数字人视频生成引擎</div>
+    <button class="hero-cta" onclick="location.href='prototype.html'">免费开始创作 →</button>
+    <div class="hero-tags">支持脚本、PPT、产品资料、知识库到视频的一站式创作</div>
+  </div>
+</section>
+
+<!-- Category Cards -->
+<section class="section" id="features">
+  <div class="cat-grid">
+    <div class="cat-card">
+      <div class="cat-thumb" style="background:linear-gradient(135deg,#1e3a5f,#2d5a87);">
+        <div class="cat-name">企业营销</div>
+      </div>
+      <div class="cat-features">
+        <div class="cf-item"><span class="cf-label">内容获客</span><span class="cf-desc">让每一次触达都建立深度信任</span></div>
+        <div class="cf-item"><span class="cf-label">极速成片</span><span class="cf-desc">专业形象时刻在线，尽显风采</span></div>
+        <div class="cf-item"><span class="cf-label">一键复刻</span><span class="cf-desc">让每条视频都成为增长利器</span></div>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-thumb" style="background:linear-gradient(135deg,#2d4a3e,#3d6b5a);">
+        <div class="cat-name">教育培训</div>
+      </div>
+      <div class="cat-features">
+        <div class="cf-item"><span class="cf-label">一键成片</span><span class="cf-desc">每个人都能高效制作专业课程</span></div>
+        <div class="cf-item"><span class="cf-label">降本增效</span><span class="cf-desc">让每一堂课的制作成本大幅下降</span></div>
+        <div class="cf-item"><span class="cf-label">AI 代讲</span><span class="cf-desc">让每个知识点都生动有趣</span></div>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-thumb" style="background:linear-gradient(135deg,#3d2b1f,#5a4030);">
+        <div class="cat-name">金融科普</div>
+      </div>
+      <div class="cat-features">
+        <div class="cf-item"><span class="cf-label">精准营销</span><span class="cf-desc">让每一条视频都精准触达客户</span></div>
+        <div class="cf-item"><span class="cf-label">AI 赋能</span><span class="cf-desc">让每一次出镜都彰显专业</span></div>
+        <div class="cf-item"><span class="cf-label">定制形象</span><span class="cf-desc">专属数字人定制服务</span></div>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-thumb" style="background:linear-gradient(135deg,#4a2d3d,#6b4050);">
+        <div class="cat-name">个人 IP</div>
+      </div>
+      <div class="cat-features">
+        <div class="cf-item"><span class="cf-label">矩阵克隆</span><span class="cf-desc">系统化打造个人影响力</span></div>
+        <div class="cf-item"><span class="cf-label">AI 创作</span><span class="cf-desc">让每一次创作都精准捕捉热点</span></div>
+        <div class="cf-item"><span class="cf-label">数字分身</span><span class="cf-desc">实现个人品牌的无限可能</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Feature: 数字人技术 -->
+<section class="section" style="background:#f9fafb;" id="avatars">
+  <div class="section-center" style="margin-bottom:48px;">
+    <div class="sec-tag">核心能力</div>
+    <div class="sec-title">强大的定制数字人技术</div>
+    <div class="sec-desc">最快 1 分钟，即可打造你的数字分身</div>
+    <button class="feat-btn" onclick="location.href='prototype.html'">免费定制</button>
+  </div>
+  <div class="feat-row">
+    <div class="feat-visual">
+      <div class="feat-visual-bg" style="background:linear-gradient(135deg,#e8dff5,#f5e6f0);display:flex;align-items:center;justify-content:center;font-size:120px;">👩‍💼</div>
+    </div>
+    <div class="feat-info">
+      <h3>超逼真声音复刻<br>多国语音一键生成</h3>
+      <p>上传照片或视频，AI 自动学习面部特征，生成高还原度数字人。支持 40+ 语言、200+ 音色，让数字人说任何语言。</p>
+      <div class="wave-bars" id="heroWave"></div>
+      <div class="lang-flags">
+        <span>🇨🇳</span><span>🇺🇸</span><span>🇯🇵</span><span>🇰🇷</span><span>🇫🇷</span><span>🇩🇪</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Feature: IP形象商店 -->
+<section class="section">
+  <div class="feat-row reverse">
+    <div class="feat-visual">
+      <div class="av-showcase">
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#fde68a,#fbbf24);">👩‍💼</div><div class="av-label">商务女性</div></div>
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#c7d2fe,#818cf8);">👨‍💻</div><div class="av-label">专业男性</div></div>
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#a7f3d0,#6ee7b7);">👩‍🏫</div><div class="av-label">教育讲师</div></div>
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#fbcfe8,#f9a8d4);">🧑‍🎤</div><div class="av-label">活力青年</div></div>
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#bae6fd,#7dd3fc);">🧑‍🔬</div><div class="av-label">科技达人</div></div>
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#fecaca,#fca5a5);">👩‍⚖️</div><div class="av-label">新闻主播</div></div>
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#d9f99d,#bef264);">👨‍🎤</div><div class="av-label">潮流达人</div></div>
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#fcd5ce,#fdba74);">👩‍🍳</div><div class="av-label">美食博主</div></div>
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#d1d5db,#9ca3af);">👨‍⚕️</div><div class="av-label">医疗专家</div></div>
+        <div class="av-item"><div class="av-item-bg" style="background:linear-gradient(135deg,#e9d5ff,#c084fc);">👩‍🎨</div><div class="av-label">艺术创作者</div></div>
+      </div>
+    </div>
+    <div class="feat-info">
+      <div class="sec-tag">数字人中心</div>
+      <h3>精选 IP 形象商店</h3>
+      <p>业内爆款 IP 形象点击即用，覆盖商务、教育、金融、娱乐等场景。也可上传照片或视频，创建专属数字分身。</p>
+      <button class="feat-btn" onclick="location.href='prototype.html'">去看看</button>
+    </div>
+  </div>
+</section>
+
+<!-- Feature: 语音克隆 -->
+<section class="section" style="background:#f9fafb;" id="voice">
+  <div class="feat-row">
+    <div class="feat-visual">
+      <div class="voice-visual">
+        <div class="voice-phone">🎤</div>
+        <div class="voice-card-float">
+          <h4>超逼真声音复刻</h4>
+          <p>上传 10 秒音频，AI 即可克隆你的声音</p>
+          <div class="wave-bars" id="voiceWave"></div>
+          <div class="lang-flags">
+            <span>🇨🇳</span><span>🇺🇸</span><span>🇯🇵</span><span>🇰🇷</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="feat-info">
+      <div class="sec-tag">语音工作室</div>
+      <h3>AI 声音设计</h3>
+      <p>声如其人，万千音色，触手可及。声音克隆、声音设计，实现高准确率、多语种、超自然的文字语音转化效果。</p>
+      <button class="feat-btn" onclick="location.href='prototype.html'">去试试</button>
+    </div>
+  </div>
+</section>
+
+<!-- Feature: 视频生成 -->
+<section class="section">
+  <div class="feat-row reverse">
+    <div class="feat-visual">
+      <div class="feat-visual-bg" style="background:linear-gradient(135deg,#fef3c7,#fde68a);display:flex;align-items:center;justify-content:center;border-radius:16px;">
+        <div style="text-align:center;">
+          <div style="font-size:72px;margin-bottom:12px;">🎬</div>
+          <div style="font-size:14px;color:#92400e;font-weight:600;">AI 视频生成中...</div>
+          <div style="margin-top:12px;width:200px;height:6px;background:#fcd34d;border-radius:3px;overflow:hidden;">
+            <div style="width:75%;height:100%;background:#f59e0b;border-radius:3px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="feat-info">
+      <div class="sec-tag">核心流程</div>
+      <h3>一键生成视频</h3>
+      <p>输入脚本 → 选择数字人 → 选择语音 → AI 自动合成。无需拍摄，无需剪辑，3 分钟输出专业级口播视频，支持 1080p 高清下载和一键分享。</p>
+      <button class="feat-btn" onclick="location.href='prototype.html'">开始创作</button>
+    </div>
+  </div>
+</section>
+
+<!-- Brand Strip -->
+<section class="brand-strip">
+  <div class="brand-row">
+    <div class="brand-logo">公牛</div>
+    <div class="brand-logo">Ubras</div>
+    <div class="brand-logo">UR</div>
+    <div class="brand-logo">HLA</div>
+    <div class="brand-logo">元气森林</div>
+    <div class="brand-logo">华为</div>
+    <div class="brand-logo">海尔</div>
+    <div class="brand-logo">京东</div>
+    <div class="brand-logo">格力</div>
+    <div class="brand-logo">飞科</div>
+    <div class="brand-logo">CASIO</div>
+    <div class="brand-logo">美的</div>
+  </div>
+</section>
+
+<!-- Testimonial -->
+<section class="section">
+  <div class="testimonial">
+    <div class="testi-avatar">👨‍💼</div>
+    <div class="testi-info">
+      <h4>企业老板、MCN 机构、传媒公司</h4>
+      <div class="role">Farvis-AI 用户</div>
+      <blockquote>
+        "以前制作一条口播视频需要约摄影师、找场地、后期剪辑，至少 3 天。现在用 Farvis-AI，从脚本到成片只要 10 分钟，效果比真人拍摄还稳定。团队的内容产出效率提升了 10 倍。"
+      </blockquote>
+      <button class="testi-btn" onclick="location.href='prototype.html'">立即创作</button>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo"><div class="logo-dot"></div>Farvis-AI</div>
+      <p>AI 驱动的一站式数字人视频生成平台，让内容创作更简单、更高效。</p>
+    </div>
+    <div class="footer-col">
+      <h5>产品</h5>
+      <a href="#">视频生成</a>
+      <a href="#">数字人中心</a>
+      <a href="#">语音工作室</a>
+      <a href="#">素材库</a>
+      <a href="#">作品管理</a>
+    </div>
+    <div class="footer-col">
+      <h5>资源</h5>
+      <a href="#">使用文档</a>
+      <a href="#">API 文档</a>
+      <a href="#">视频教程</a>
+      <a href="#">更新日志</a>
+    </div>
+    <div class="footer-col">
+      <h5>支持</h5>
+      <a href="#">帮助中心</a>
+      <a href="#">联系客服</a>
+      <a href="#">社区论坛</a>
+    </div>
+    <div class="footer-col">
+      <h5>关于</h5>
+      <a href="#">关于我们</a>
+      <a href="#">定价方案</a>
+      <a href="#">隐私政策</a>
+      <a href="#">服务条款</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>© 2026 Farvis-AI. All rights reserved.</div>
+    <div class="footer-qr">
+      <div class="qr-box">微信公众号</div>
+      <div class="qr-box">小程序</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Wave bars animation
+function initWave(id, count, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('span');
+    s.style.height = (Math.random() * 24 + 6) + 'px';
+    s.style.background = color;
+    el.appendChild(s);
+  }
+  let idx = 0;
+  setInterval(() => {
+    const bars = el.children;
+    for (let b of bars) b.style.opacity = '0.3';
+    bars[idx % bars.length].style.opacity = '1';
+    idx++;
+  }, 120);
+}
+initWave('heroWave', 30, '#4ade80');
+initWave('voiceWave', 20, '#4ade80');
+
+// Smooth scroll
+document.querySelectorAll('.nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    e.preventDefault();
+    const t = document.querySelector(this.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+</script>
+</body>
+</html>
