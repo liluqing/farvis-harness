@@ -137,26 +137,49 @@ harness/                          # 本仓库
 ├── VERSION                       # 版本号
 ├── SKILL.md                      # Harness 初始化 Skill（Agent 执行）
 │
-├── flow/                      # 开发流程定义（Phase 1→4）
-│   ├── skill.md               # 流程总入口（Phase 路由）
+├── core-design/                 # 核心设计文档（方向锚定）
+│   ├── 01-document-management-and-agent-interaction.md
+│   ├── 02-docs-directory-spec.md
+│   ├── 03-systems-integration.md # 新旧体系整合规范
+│   ├── templates/               # 文档模板（AI Context / 迭代 / 项目 / 归档）
+│   └── schemas/                 # JSON Schema（inbox 事件）
+│
+├── Docs/                        # 文档管理体系（运行时）
+│   ├── AI-CONTEXT.md            # Agent 工作记忆（摘要+索引）
+│   ├── project/                 # 项目当前状态（归档时更新）
+│   │   ├── architecture.md
+│   │   ├── data-model.md
+│   │   ├── api-contracts.md
+│   │   └── modules/             # 按模块拆分的业务现状
+│   ├── iterations/              # 活跃迭代（进行中）
+│   └── archive/                 # 已归档迭代（只读）
+│
+├── flow/                        # 开发流程定义（Phase 1→4）
+│   ├── skill.md                 # 流程总入口（Phase 路由 + Skill 加载关系）
 │   ├── phase-1-product-prototype/
 │   ├── phase-2-architecture/
 │   ├── phase-3-spec-dev/
 │   ├── phase-4-integration-test/
-│   └── shared/                # 跨阶段共享（state 模板、TDD 五步）
+│   └── shared/                  # 跨阶段共享（state 模板、TDD 五步）
 │
-├── core/                       # 框架无关的 Harness 原理
-│   ├── principles/             # 五条方法论（必读）
-│   ├── patterns/               # 通用设计模式（概念层）
-│   ├── ai-context/             # 上下文结构定义（YAML schema）
-│   └── devops/                 # 通用环境定义（占位）
+├── core/                        # 框架无关的 Harness 原理
+│   ├── principles/              # 五条方法论（必读）
+│   ├── patterns/                # 通用设计模式（概念层）
+│   ├── ai-context/              # 上下文结构定义（YAML schema）
+│   └── devops/                  # 通用环境定义（占位）
 │
-├── stacks/                     # 框架特定实现（可插拔）
-│   ├── spring-boot3-jpa/       # Spring Boot 3 + JPA + MySQL + Redis
-│   └── ...                     # 未来：quarkus, micronaut, mybatis 等
+├── stacks/                      # 框架特定实现（可插拔）
+│   ├── spring-boot3-jpa/        # Spring Boot 3 + JPA + MySQL + Redis
+│   └── ...                      # 未来：quarkus, micronaut, mybatis 等
 │
-└── examples/                   # 填写示例（验证模板可用性）
-    └── farvis-ai/              # 数字人视频平台（Spring Boot）
+├── .harness/                    # Harness 运行时基础设施
+│   ├── skills/                  # Agent Skill（harness-java / sync / archive）
+│   ├── hooks/git/               # Git hooks（含 post-checkout / post-merge）
+│   ├── inbox/                   # 外部事件信箱（异步通道）
+│   └── inbox-processed/         # 已处理事件存档
+│
+└── examples/                    # 填写示例（验证模板可用性）
+    └── farvis-ai/               # 数字人视频平台（Spring Boot）
 ```
 
 ### core/ 与 stacks/ 的分工
@@ -167,11 +190,21 @@ core/patterns/      → "怎么做——概念上"（Outbox 是什么，不写 J
 stacks/{stack}/     → "具体代码怎么写"（JPA @Entity + @Transactional）
 ```
 
+### 四层信息模型
+
+```
+Docs/AI-CONTEXT.md              → Agent 工作记忆（摘要+索引，< 2000 字）
+Docs/project/                   → 项目当前状态（人类可读，归档时更新）
+.harness/ai-context/*.yaml      → 结构化上下文（机器友好，各 Phase 追加）
+Docs/iterations/ + archive/     → 迭代历史（集中存放，归档后只读）
+```
+
 Agent 初始化 Harness 时：
 1. 读 `core/principles/` 理解五条方法论
 2. 读 `core/ai-context/` 理解上下文结构
 3. 按项目技术栈选 `stacks/{stack}/`
 4. 复制对应模板到目标项目
+5. 初始化 `Docs/` 目录结构
 
 ---
 
@@ -260,7 +293,7 @@ Harness **原理**与技术栈无关。Harness **实现**与技术栈有关。
 
 ## 8. 版本
 
-当前版本：**v0.3.1**（静态基础设施层完成）
+当前版本：**v0.5.0**（Step 1 完成：流程对齐 + 文档管理体系 + 整合）
 
 版本规则见 [ROADMAP.md](ROADMAP.md)。
 

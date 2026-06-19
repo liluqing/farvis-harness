@@ -89,7 +89,11 @@ ls ~/docs/harness-research/farvis-harness/stacks/
 ### 3.1 创建目录
 
 ```bash
-mkdir -p <target>/.harness/{skills,hooks,ai-context,devops,infra,templates,principles,patterns,flow}
+# .harness/ 目录结构
+mkdir -p <target>/.harness/{skills,hooks,ai-context,devops,infra,templates,principles,patterns,flow,inbox,inbox-processed}
+
+# Docs/ 目录结构（文档管理体系）
+mkdir -p <target>/Docs/{project/modules,iterations,archive}
 ```
 
 ### 3.2 复制 .harness/hooks/（Hook 脚本）
@@ -115,6 +119,14 @@ chmod +x <target>/.harness/hooks/git/pre-push
 # commit-msg：校验提交信息格式
 ln -sf ../../.harness/hooks/git/commit-msg <target>/.git/hooks/commit-msg
 chmod +x <target>/.harness/hooks/git/commit-msg
+
+# post-checkout：检测新迭代分支创建
+ln -sf ../../.harness/hooks/git/post-checkout <target>/.git/hooks/post-checkout
+chmod +x <target>/.harness/hooks/git/post-checkout
+
+# post-merge：检测分支合并到 main
+ln -sf ../../.harness/hooks/git/post-merge <target>/.git/hooks/post-merge
+chmod +x <target>/.harness/hooks/git/post-merge
 ```
 
 如果目标不是 git 仓库（无 `.git/` 目录）→ 跳过此步骤，在初始化报告中标注「Git hooks 未配置（非 git 仓库）」。
@@ -124,6 +136,8 @@ chmod +x <target>/.harness/hooks/git/commit-msg
 ```bash
 mkdir -p <target>/.harness/skills
 cp <repo>/.harness/skills/harness-java.md <target>/.harness/skills/harness-java.md
+cp <repo>/.harness/skills/harness-sync-context.md <target>/.harness/skills/harness-sync-context.md
+cp <repo>/.harness/skills/harness-archive-iteration.md <target>/.harness/skills/harness-archive-iteration.md
 ```
 
 ### 3.5 创建软链接 — Skill 接入 AI 编码工具
@@ -209,6 +223,29 @@ cp -r <repo>/flow/* <target>/.harness/flow/
 
 包含 Phase 1→4 的流程定义（flow.md + templates）、shared/（状态模板、TDD 五步）和 skill.md（流程总入口）。Agent 在项目内按流程开发时读这些文件。
 
+### 3.13 初始化 Docs/（文档管理体系）
+
+```bash
+# 创建 AI-CONTEXT.md 模板
+cp <repo>/core-design/templates/ai-context.md <target>/Docs/AI-CONTEXT.md
+
+# 创建 .ai-context-sync.json
+echo '{"last_sync": "", "sync_count": 0, "file_snapshots": {}, "last_sync_changes": []}' > <target>/Docs/.ai-context-sync.json
+
+# 创建 project/ 文档模板
+cp <repo>/core-design/templates/project/architecture.md <target>/Docs/project/architecture.md
+cp <repo>/core-design/templates/project/data-model.md <target>/Docs/project/data-model.md
+cp <repo>/core-design/templates/project/api-contracts.md <target>/Docs/project/api-contracts.md
+
+# 添加 .gitkeep 保持空目录
+touch <target>/Docs/iterations/.gitkeep
+touch <target>/Docs/archive/.gitkeep
+touch <target>/.harness/inbox/.gitkeep
+touch <target>/.harness/inbox-processed/.gitkeep
+```
+
+**注意**：复制的模板文件包含占位符（如 `{项目名}`），需要在初始化报告中提示用户填写。
+
 ---
 
 ## STEP 4: 参数化模板
@@ -252,10 +289,24 @@ python3 <repo>/stacks/{stack}/scripts/parameterize.py \
 
 在开始任何开发任务前，先读取以下文件：
 
+- `Docs/AI-CONTEXT.md` — 项目全局概览（摘要+索引，日常主要读这个）
 - `.harness/ai-context/project-map.yaml` — 模块边界与依赖
 - `.harness/ai-context/business-rules.yaml` — 幂等/缓存/一致性约束
 - `.harness/ai-context/error-catalog.yaml` — 错误码与修复路径
 - `.harness/ai-context/coding-rules.yaml` — 编码规则
+
+### 文档管理体系
+
+本项目使用四层信息模型管理文档：
+
+- `Docs/AI-CONTEXT.md` — Agent 工作记忆（摘要+索引）
+- `Docs/project/` — 项目当前状态（只在迭代归档时更新）
+- `Docs/iterations/` — 活跃迭代文档（进行中）
+- `Docs/archive/` — 已归档迭代（只读）
+- `.harness/ai-context/*.yaml` — 结构化上下文（机器友好）
+- `.harness/inbox/` — 外部事件信箱（Agent 启动时优先扫描）
+
+详见 `.harness/flow/skill.md` 中的「文档管理体系」章节。
 
 ### 开发模板
 
@@ -279,6 +330,10 @@ docker compose up -d   # MySQL + Redis + WireMock
 ### Git Hooks
 
 提交前自动运行 fastTest，推送前运行全量测试。配置在 `.harness/hooks/git/`，已通过软链接接入 `.git/hooks/`。
+
+额外的生命周期 hooks：
+- `post-checkout`：检测从 main 创建新分支，写入 `.harness/inbox/` 事件
+- `post-merge`：检测分支合并到 main，触发迭代归档流程
 
 ### 设计原理
 
@@ -314,11 +369,11 @@ tasks.register<Test>("fastTest") {
 ```markdown
 【Harness 初始化完成】
 
-全部文件在 .harness/ 下，未修改项目其他目录。
-
 已创建/更新：
-- .harness/skills/              → 运行时 Skill（Agent 日常开发入口）
-- .harness/hooks/git/            → pre-commit / pre-push / commit-msg（已软链接到 .git/hooks/）
+
+### .harness/ 目录（Harness 基础设施）
+- .harness/skills/              → 运行时 Skill（harness-java / harness-sync-context / harness-archive-iteration）
+- .harness/hooks/git/            → pre-commit / pre-push / commit-msg / post-checkout / post-merge（已软链接到 .git/hooks/）
 - .harness/ai-context/           → 4 个 YAML 模板（请按项目填写）
 - .harness/devops/              → Docker Compose + 配置文件 + 脚本（env-check/env-reset）+ Prometheus/Grafana + WireMock stubs
 - .harness/infra/               → Slice / Outbox / Observe / Client / Idempotency / Exception / Result 代码
@@ -327,14 +382,26 @@ tasks.register<Test>("fastTest") {
 - .harness/principles/          → 五条方法论
 - .harness/patterns/            → 设计模式
 - .harness/flow/               → 开发流程定义（Phase 1→4 的 flow.md + templates + shared/）
+- .harness/inbox/               → 外部事件信箱（Git Hook / CI 等异步事件）
+- .harness/inbox-processed/     → 已处理事件存档
+
+### Docs/ 目录（文档管理体系）
+- Docs/AI-CONTEXT.md            → Agent 工作记忆（摘要+索引，< 2000 字）
+- Docs/.ai-context-sync.json    → 同步元数据（Skill 内部用）
+- Docs/project/                 → 项目当前状态（architecture / data-model / api-contracts / modules/）
+- Docs/iterations/              → 活跃迭代文档（进行中）
+- Docs/archive/                 → 已归档迭代（只读）
+
+### 入口文件
 - AGENTS.md                     → Qoder / Codex 渐进披露入口（已更新）
 - CLAUDE.md                     → Claude Code 渐进披露入口（已更新）
 
 下一步：
 1. 编辑 .harness/ai-context/project-map.yaml  — 填写模块边界
 2. 编辑 .harness/ai-context/business-rules.yaml — 填写业务约束
-3. 如果有 PRD，对我（Agent）说「从 PRD 提取上下文」
-4. 完成后对我说「开始 Phase 1」进入 Harness 开发流程
+3. 编辑 Docs/AI-CONTEXT.md — 填写项目概览
+4. 如果有 PRD，对我（Agent）说「从 PRD 提取上下文」
+5. 完成后对我说「开始 Phase 1」进入 Harness 开发流程
 ```
 
 ---
@@ -342,7 +409,8 @@ tasks.register<Test>("fastTest") {
 ## 关键原则
 
 1. **Harness 全部在 `.harness/`** — 不污染项目其他目录，不创建散落的 `ai-context/`、`devops/` 文件夹
-2. **只修改 AGENTS.md + CLAUDE.md** — 两个入口文件，渐进披露 Harness 结构。不改动其他项目文件
-3. **已有文件不覆盖** — `.harness/` 内的 `cp -n`；AGENTS.md / CLAUDE.md 存在则追加不覆盖
-4. **不强制合并构建配置** — 增量编译等配置写入 AGENTS.md 的「建议配置」段，人类开发者自主决定
-5. **项目代码不动** — 不修改 `src/` 下的任何文件
+2. **文档管理在 `Docs/`** — 迭代文档集中存放，项目状态文档归档时更新
+3. **只修改 AGENTS.md + CLAUDE.md** — 两个入口文件，渐进披露 Harness 结构。不改动其他项目文件
+4. **已有文件不覆盖** — `.harness/` 内的 `cp -n`；AGENTS.md / CLAUDE.md 存在则追加不覆盖
+5. **不强制合并构建配置** — 增量编译等配置写入 AGENTS.md 的「建议配置」段，人类开发者自主决定
+6. **项目代码不动** — 不修改 `src/` 下的任何文件

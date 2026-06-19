@@ -8,11 +8,12 @@
 
 ## 当前状态
 
-**Step 1 已完成（v0.4.0）**：Skill 改造 + 异常场景处理机制全部就位。
+**Step 1 已完成（v0.5.0）**：Skill 改造 + 异常场景处理机制 + 文档管理体系 + 整合。
 
-已完成两轮改造：
+已完成三轮改造：
 - **第一轮**：Skill 从"Agent 自循环引擎"改为"人机协作操作手册"（1.1~1.4）
 - **第二轮**：补充异常场景处理——会话初始化协议、需求规模四级评估、异常路由、文档健康度检查、跨迭代影响分析、前置条件不满足处理
+- **第三轮**：文档管理体系——四层信息模型（AI-CONTEXT.md / project/ / ai-context/*.yaml / iterations+archive）、迭代目录结构、归档流程、Git Hook 事件信箱、Agent 交互协议、新旧体系整合
 
 仓库同时已完成**静态基础设施层**（v0.3.1）：上下文 schema、代码模板、测试基础设施、Git hooks、Docker 环境——81 项资产全部就位。
 
@@ -22,6 +23,7 @@
 - 人在哪个环节花时间最多
 - Agent 在哪个环节产出质量不行
 - 异常场景处理机制（会话初始化、四级路由、文档健康度）在实战中是否生效
+- 文档管理体系（迭代目录、归档流程、AI Context 同步）在实战中是否顺畅
 
 ---
 
@@ -39,9 +41,9 @@ Step 3: 针对性优化（按卡点改）         ← 有数据再动手
 
 ---
 
-## Step 1: 流程对齐 — Skill 改造 ✅
+## Step 1: 流程对齐 — Skill 改造 + 文档管理体系 ✅
 
-**目标**：让 harness-dev-flow Skill 从"Agent 自循环引擎"改为"人机协作操作手册"。
+**目标**：让 harness-dev-flow Skill 从"Agent 自循环引擎"改为"人机协作操作手册"，并建立完整的文档管理体系。
 
 | # | 改造项 | 具体内容 | 完成标准 | 状态 |
 |:--|------|---------|---------|:--:|
@@ -54,6 +56,8 @@ Step 3: 针对性优化（按卡点改）         ← 有数据再动手
 | 1.7 | 异常路由表 | 处理用户跳步：从原型反推 PRD、变更模式、技术重构模式、非开发问题识别 | 用户不按标准流程走时 Agent 有应对方案 | ✅ |
 | 1.8 | 文档健康度检查 | 每个 Phase 启动前检查 PRD/架构/状态文件一致性 | 防止基于过时文档做决策 | ✅ |
 | 1.9 | 跨迭代影响分析 | 修改已有模块时评估影响范围 | 迭代 N+1 改迭代 N 的模块时不会遗漏依赖方 | ✅ |
+| 1.10 | 文档管理体系 | 四层信息模型 + 迭代目录结构 + 归档流程 + Git Hook 事件信箱 | 迭代文档集中管理，归档后自动同步 AI Context | ✅ |
+| 1.11 | 新旧体系整合 | flow/skill.md + SKILL.md 更新，统一路径和 Skill 加载关系 | Agent 执行时不再有两套冲突的文档路径 | ✅ |
 
 **不做的事**：不写编排器脚本、不做自动化状态机、不做 Agent 自循环逻辑。
 
@@ -98,9 +102,14 @@ Step 3: 针对性优化（按卡点改）         ← 有数据再动手
 | 编码规则 | `stacks/*/coding-rules.yaml` | 框架特化的编码规范 |
 | 代码模板 | `stacks/*/templates/` | Agent 写代码的参考 |
 | 测试基础设施 | `stacks/*/devops/` + `stacks/*/infra/` | Docker + WireMock + ArchUnit + Outbox 等 |
-| Git hooks | `.harness/hooks/` | pre-commit/pre-push 自动校验 |
-| 初始化 Skill | `SKILL.md` | 项目初始化流程 |
+| Git hooks | `.harness/hooks/` | pre-commit/pre-push/commit-msg/post-checkout/post-merge |
+| 初始化 Skill | `SKILL.md` | 项目初始化流程（含 Docs/ 目录） |
 | 运行时 Skill | `.harness/skills/harness-java.md` | Agent 开发时的上下文加载入口 |
+| 归档 Skill | `.harness/skills/harness-archive-iteration.md` | 迭代归档流程 |
+| 同步 Skill | `.harness/skills/harness-sync-context.md` | AI Context 增量同步 |
+| 事件信箱 | `.harness/inbox/` + `.harness/inbox-processed/` | 外部事件异步通道 |
+| 文档管理体系 | `Docs/` | AI-CONTEXT.md + project/ + iterations/ + archive/ |
+| 核心设计文档 | `core-design/` | 设计思路沉淀 + 模板 + Schema |
 | 原理文档 | `core/principles/` + `core/patterns/` | 方法论参考 |
 | 填写示例 | `examples/farvis-ai/` | 示范如何填写 ai-context |
 
@@ -108,9 +117,10 @@ Step 3: 针对性优化（按卡点改）         ← 有数据再动手
 
 ## 版本
 
-当前版本：**v0.4.0**（Step 1 完成：流程对齐 + 异常场景处理）
+当前版本：**v0.5.0**（Step 1 完成：流程对齐 + 异常场景处理 + 文档管理体系 + 整合）
 
 版本规则：
 - ~~**Step 1 完成** → v0.4.0（流程对齐）~~ ✅
-- **Step 2 完成** → v0.5.0（实战验证 + 卡点清单）
+- ~~**Step 1 扩展** → v0.5.0（文档管理体系 + 新旧体系整合）~~ ✅
+- **Step 2 完成** → v0.6.0（实战验证 + 卡点清单）
 - **Step 3 完成** → v1.0.0（经过真实验证的第一版）

@@ -52,12 +52,12 @@ Agent 每次被唤醒时，先恢复项目上下文，再响应用户。
 
 按顺序加载（只读，不输出给用户）：
 
-1. `.harness/flow/shared/state.json` → 当前迭代状态和进度
-2. `.harness/ai-context/project-map.yaml` → 模块边界
-3. `.harness/ai-context/business-rules.yaml` → 业务规则
-4. `.harness/ai-context/error-catalog.yaml` → 错误码清单
-5. 最近的 PRD（`docs/product/prd-*.md`，取最新修改的文件）
-6. 最近的架构文档（`docs/architecture/architecture-*.md`，如有）
+1. `.harness/inbox/` → 待处理事件（优先处理 high priority）
+2. `Docs/AI-CONTEXT.md` → 项目全局概览（摘要 + 索引）
+3. `.harness/ai-context/context.yaml`（或分文件 `project-map.yaml` + `business-rules.yaml` + `error-catalog.yaml` + `coding-rules.yaml`）→ 结构化上下文
+4. `.harness/flow/shared/state.json` → 当前开发进度（切片级）
+5. `Docs/iterations/` → 活跃迭代列表
+6. 最近的迭代 PRD（`Docs/iterations/*/prd.md` 或 `Docs/archive/*/prd.md`，取最新修改的）
 
 ### 步骤 3：输出项目状态摘要
 
@@ -339,8 +339,9 @@ Agent 分析原型：
 用户描述变更
     ↓
 Agent 读取现有文档：
-  - 找到对应的 PRD（docs/product/prd-<功能名>.md）
-  - 找到对应的架构文档（如有）
+  - 找到对应迭代的 PRD（Docs/iterations/ 或 Docs/archive/ 下的 prd.md）
+  - 找到对应的 tech-design.md（如有）
+  - 找到对应的模块文档（Docs/project/modules/）
   - 找到对应的代码（通过 project-map.yaml）
     ↓
 评估变更规模：
@@ -532,33 +533,38 @@ Phase 4 启动 → 检查 state.json 一致性 + ai-context 完整性
 
 ```
 Phase 1（需求）
-  产出：PRD（docs/product/prd-<功能名>.md）
+  产出：PRD（Docs/iterations/{迭代名}/prd.md）
   产出：Harness 上下文（.harness/ai-context/business-rules.yaml + error-catalog.yaml）
     ↓
 Phase 2（架构，可选）
   输入：PRD
-  产出：架构文档（docs/architecture/architecture-<功能名>.md）
-  产出：任务清单（docs/architecture/task-list-<功能名>.md）
+  产出：技术设计文档（Docs/iterations/{迭代名}/tech-design.md）
+  产出：任务清单（Docs/iterations/{迭代名}/tasks.md）
   产出：Harness 上下文（.harness/ai-context/project-map.yaml + adr/*.md）
     ↓
 Phase 3（开发）
-  输入：PRD + 架构文档 + 任务清单 + Harness 上下文
+  输入：PRD + 技术设计 + 任务清单 + Harness 上下文
   产出：源代码 + 测试
-  产出：技术设计（docs/design/design-<功能名>-<切片名>.md，每切片一份）
+  产出：技术设计追加（Docs/iterations/{迭代名}/tech-design.md，追加切片设计）
   产出：状态文件（.harness/flow/shared/state.json）
+  产出：DDL/API 变更（Docs/iterations/{迭代名}/ddl-changes.md + api-changes.md）
     ↓
 Phase 4（集成测试）
-  输入：所有代码 + PRD + 架构文档 + Harness 上下文 + 状态文件
-  产出：集成测试报告（docs/integration-test/report-<功能名>.md）
+  输入：所有代码 + PRD + 技术设计 + Harness 上下文 + 状态文件
+  产出：集成测试报告追加（Docs/iterations/{迭代名}/review-notes.md）
   同步：更新 error-catalog.yaml（如有新错误码）
     ↓
-交付
+迭代完成 → 归档
+  调用 harness-archive-iteration Skill
+  合并文档到 Docs/project/ → 移动迭代到 Docs/archive/
+  调用 harness-sync-context Skill → 更新 Docs/AI-CONTEXT.md
 ```
 
 **关键原则：**
 - PRD 是唯一贯穿全程的文档，所有后续阶段都引用它
 - Harness 上下文（`.harness/ai-context/`）是共享状态，各阶段按职责更新
 - 任务清单是 Phase 2 → Phase 3 的交接物，Phase 3 按清单逐个任务拆切片
+- 所有迭代文档集中存放在 `Docs/iterations/{迭代名}/` 下
 
 ---
 
@@ -584,19 +590,21 @@ Phase 4（集成测试）
 
 ## 跨迭代文档关联
 
-多次迭代间，文档通过**功能名**区分和关联：
+多次迭代间，文档通过**迭代目录**区分和关联：
 
-| 文档类型 | 命名规则 | 示例 |
-|---------|---------|------|
-| PRD | `prd-<功能名>.md` | `prd-user-module.md` |
-| 架构文档 | `architecture-<功能名>.md` | `architecture-user-module.md` |
-| 任务清单 | `task-list-<功能名>.md` | `task-list-user-module.md` |
-| 技术设计 | `design-<功能名>-<切片名>.md` | `design-user-create-user.md` |
-| 集成测试报告 | `report-<功能名>.md` | `report-user-module.md` |
+| 文档类型 | 位置 | 示例 |
+|---------|------|------|
+| PRD | `Docs/iterations/{迭代名}/prd.md` | `Docs/iterations/2026-06-19_用户认证_v1.0/prd.md` |
+| 技术设计 | `Docs/iterations/{迭代名}/tech-design.md` | 同上 |
+| 任务清单 | `Docs/iterations/{迭代名}/tasks.md` | 同上 |
+| DDL 变更 | `Docs/iterations/{迭代名}/ddl-changes.md` | 同上 |
+| API 变更 | `Docs/iterations/{迭代名}/api-changes.md` | 同上 |
+| 评审记录 | `Docs/iterations/{迭代名}/review-notes.md` | 同上 |
 
 **迭代间依赖：**
-- 迭代 N+1 的 Phase 3 如果需要引用迭代 N 的模块，通过 PRD 和架构文档关联
-- 跨迭代的接口变更，在架构文档中明确标注"依赖迭代 N 的模块 X"
+- 迭代 N+1 如果需要引用迭代 N 的模块，通过 `Docs/project/modules/` 查看当前状态
+- 回溯历史决策时，通过 `Docs/archive/{迭代名}/` 查看归档文档
+- 跨迭代的接口变更，在 `tech-design.md` 中标注"依赖迭代 N 的模块 X"
 
 **Harness 上下文更新策略：**
 - `.harness/ai-context/project-map.yaml`: 每个 Phase 产出新模块时**追加**，不覆盖
@@ -604,6 +612,7 @@ Phase 4（集成测试）
 - `.harness/ai-context/coding-rules.yaml`: 同上
 - `.harness/ai-context/error-catalog.yaml`: 同上
 - `.harness/ai-context/adr/`: 每个 ADR 独立文件，天然不冲突
+- `Docs/AI-CONTEXT.md`: 归档时由同步 Skill 自动更新
 
 **冲突处理：** 如果多次迭代更新了同一个模块的规则，在 YAML 中标注版本号和迭代来源。
 
@@ -706,16 +715,51 @@ Agent 提示：「架构文档显示有模块 X，但代码里没有（或反过
 
 ## Skill 加载机制
 
+### Skill 清单与调用关系
+
+```
+用户触发
+  ↓
+harness-java-init（SKILL.md）
+  → 初始化项目：创建 .harness/ + Docs/ 目录结构
+  ↓
+harness-dev-flow（本文件）
+  → Phase 1~4 路由与执行
+  → 各 Phase 产出写入 Docs/iterations/{迭代名}/
+  ↓
+harness-java（.harness/skills/harness-java.md）
+  → Phase 3 开发时加载，读取 ai-context/*.yaml 做编码决策
+  ↓
+迭代完成，分支合并到 main
+  ↓
+post-merge hook → .harness/inbox/ 写入 branch-merged 事件
+  ↓
+harness-archive-iteration（.harness/skills/harness-archive-iteration.md）
+  → 合并文档到 Docs/project/ → 移动到 Docs/archive/
+  ↓
+harness-sync-context（.harness/skills/harness-sync-context.md）
+  → 更新 Docs/AI-CONTEXT.md + .ai-context-sync.json
+```
+
+### 加载行为
+
 本 Skill（`skill.md`）是 Harness 开发流程的**总入口**，定义了 4 个 Phase 的路由。
 
-**加载行为：**
 - 用户说"开始 Harness 开发" → Agent 加载本文件
 - 用户说"开始 Phase 1/2/3/4" → Agent 加载对应的 `phase-X-xxx/flow.md`
 - 加载是**追加模式**：保留本文件的上下文（人机协作边界、迭代模型等），叠加 phase-specific 的流程定义
 
-**上下文继承：**
+### 上下文继承
+
 - Phase-specific flow.md 可以引用本文件定义的通用概念（如"切片"、"自修循环"）
 - Phase-specific flow.md 不需要重复定义人机协作边界、决策树等通用原则
+
+### 迭代完成时的处理
+
+迭代开发完成、分支合并到 main 后，Agent 应：
+1. 检查 `.harness/inbox/` 是否有 `branch-merged` 事件
+2. 执行 `required_actions` 中列出的归档流程
+3. 参照 `core-design/templates/archive-checklist.md` 逐步执行
 
 ---
 
@@ -723,7 +767,7 @@ Agent 提示：「架构文档显示有模块 X，但代码里没有（或反过
 
 ### Java 项目
 
-对 Agent 说 **「初始化 Java Harness」** → Agent 加载 `harness-java-init` Skill → 检测技术栈 → 创建 `.harness/` 目录 → 写 AGENTS.md / CLAUDE.md。
+对 Agent 说 **「初始化 Java Harness」** → Agent 加载 `harness-java-init` Skill → 检测技术栈 → 创建 `.harness/` + `Docs/` 目录 → 写 AGENTS.md / CLAUDE.md。
 
 **Harness 前置检查**：进入任何 Phase 前，先检查 `.harness/` 是否存在。不存在 → 提示用户先初始化。
 
@@ -733,7 +777,28 @@ Agent 提示：「架构文档显示有模块 X，但代码里没有（或反过
 
 ---
 
+## 文档管理体系
+
+本项目使用四层信息模型管理文档，详见 `core-design/03-systems-integration.md`：
+
+| 层次 | 位置 | 用途 |
+|------|------|------|
+| AI-CONTEXT.md | `Docs/AI-CONTEXT.md` | Agent 工作记忆，摘要+索引 |
+| project/ | `Docs/project/` | 项目当前状态（归档时更新） |
+| ai-context/*.yaml | `.harness/ai-context/` | 结构化上下文（模块/规则/错误码） |
+| iterations/ + archive/ | `Docs/iterations/` + `Docs/archive/` | 迭代历史 |
+
+**核心原则**：
+- 所有迭代产出写入 `Docs/iterations/{迭代名}/`，不散落到其他目录
+- `.harness/ai-context/*.yaml` 是结构化查询源，各 Phase 按职责追加
+- `Docs/AI-CONTEXT.md` 由同步 Skill 自动维护，Agent 日常主要读这个
+- `.harness/inbox/` 是外部事件的异步通道，Agent 启动时优先扫描
+
+---
+
 ## 参考
 
 - `references/human-ai-boundary.md` — 人机协作边界定义（三轮纠偏过程 + 人机分工表）
 - `references/agent-tips.md` — 执行时的技术陷阱和踩坑笔记
+- `core-design/03-systems-integration.md` — 新旧体系整合规范
+- `core-design/templates/archive-checklist.md` — 归档流程 Checklist
