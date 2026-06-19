@@ -1,10 +1,15 @@
 iteration_id: 2026-06-19_测试迭代_v0.1
 iteration_name: 测试迭代
 version: v0.1
-status: completed
+status: archived
 start_date: 2026-06-19
 target_date: 2026-06-26
 modules_affected:
   - farvis-video
   - farvis-credits
 summary: 验证 Harness 文档管理体系的完整流程，包括迭代创建、文档维护、归档同步等环节
+
+archive_info:
+  archive_date: 2026-06-19
+  actual_duration_days: 0
+  retrospective: 流程验证成功，post-checkout 和 post-merge hook 均正常工作，文档归档流程顺畅

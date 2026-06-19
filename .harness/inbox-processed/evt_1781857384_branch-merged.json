@@ -1,0 +1,26 @@
+{
+  "id": "evt_1781857384_branch-merged",
+  "type": "branch-merged",
+  "priority": "high",
+  "source": "git-hook:post-merge",
+  "timestamp": "2026-06-19T08:23:04Z",
+  "payload": {
+    "branch": "2026-06-19_测试迭代_v0.1",
+    "target_branch": "main",
+    "author": "五一",
+    "commit_count": 2
+  },
+  "required_actions": [
+    "执行归档流程（参照 core-design/templates/archive-checklist.md）",
+    "合并 DDL 变更到 Docs/project/data-model.md",
+    "合并 API 变更到 Docs/project/api-contracts.md",
+    "合并业务文档到 Docs/project/modules/*.md",
+    "移动 Docs/iterations/2026-06-19_测试迭代_v0.1/ 到 Docs/archive/2026-06-19_测试迭代_v0.1/",
+    "更新 Docs/AI-CONTEXT.md（同步 Skill）"
+  ],
+  "suggested_actions": [
+    "更新 project/architecture.md（如有架构变更）",
+    "通知相关人员归档完成"
+  ],
+  "context": "分支 2026-06-19_测试迭代_v0.1 已合并到 main，需要执行迭代归档流程"
+}

@@ -15,14 +15,26 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
 fi
 
 # 从 reflog 获取最近一次 merge 的信息
-# 格式：merge xxx: Fast-forward 或 merge xxx: Merge made by the 'ort' strategy
+# 格式可能为：
+#   xxx main@{0}: merge xxx: Fast-forward
+#   xxx main@{0}: commit (merge): description  (--no-ff 模式)
 MERGE_ENTRY=$(git reflog show main 2>/dev/null | head -1 || echo "")
 
-# 检查是否是 merge 操作
-if echo "$MERGE_ENTRY" | grep -q "^merge "; then
+# 检查是否是 merge 操作（兼容两种格式）
+if echo "$MERGE_ENTRY" | grep -qE "(^merge |commit \(merge\):)"; then
     # 提取被 merge 的分支名
-    # reflog 格式：merge <branch-name>: <message>
-    MERGED_BRANCH=$(echo "$MERGE_ENTRY" | sed -n 's/^merge \([^:]*\):.*/\1/p')
+    MERGED_BRANCH=""
+    # 格式 1: merge <branch-name>: ...
+    if echo "$MERGE_ENTRY" | grep -q "^merge "; then
+        MERGED_BRANCH=$(echo "$MERGE_ENTRY" | sed -n 's/^merge \([^:]*\):.*/\1/p')
+    # 格式 2: commit (merge): ... (--no-ff 模式，commit message 是自定义的)
+    else
+        # 从 merge commit 的第二个 parent 推断分支名
+        PARENT2=$(git log -1 --pretty="%P" HEAD 2>/dev/null | awk '{print $2}')
+        if [ -n "$PARENT2" ]; then
+            MERGED_BRANCH=$(git name-rev --name-only "$PARENT2" 2>/dev/null | sed 's/^remotes\/[^/]*\///' || echo "")
+        fi
+    fi
     
     if [ -n "$MERGED_BRANCH" ]; then
         TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")

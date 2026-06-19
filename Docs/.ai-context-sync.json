@@ -1,9 +1,11 @@
 {
-  "last_sync": "2026-06-19T16:00:00+08:00",
-  "sync_count": 1,
+  "last_sync": "2026-06-19T16:24:00+08:00",
+  "sync_count": 2,
   "file_snapshots": {},
   "last_sync_changes": [
-    "初始化 AI Context",
-    "创建 6 个模块索引条目"
+    "新增归档记录：2026-06-19_测试迭代_v0.1",
+    "更新模块状态：farvis-video、farvis-credits 标记为开发中",
+    "合并 API 变更：GET /api/v1/credits/usage、POST /api/v1/videos/generate（resolution 参数）",
+    "更新模块索引最后更新日期"
   ]
 }
