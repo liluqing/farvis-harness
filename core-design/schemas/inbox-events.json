@@ -1,0 +1,192 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Harness Inbox Event",
+  "description": "Agent 事件信箱的事件文件 schema",
+  "type": "object",
+  "required": ["id", "type", "priority", "source", "timestamp", "payload", "required_actions", "suggested_actions", "context"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "事件唯一标识，格式：evt_{timestamp}_{type}",
+      "pattern": "^evt_\\d{8}T\\d{6}_[a-z-]+$"
+    },
+    "type": {
+      "type": "string",
+      "description": "事件类型",
+      "enum": [
+        "branch-created",
+        "branch-merged",
+        "commit-pushed",
+        "ci-failed",
+        "pr-review-requested"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "description": "事件优先级",
+      "enum": ["high", "normal", "low"]
+    },
+    "source": {
+      "type": "string",
+      "description": "事件来源标识",
+      "examples": ["git-hook:post-checkout", "git-hook:post-merge", "ci:github-actions"]
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "事件发生时间（ISO8601）",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object",
+      "description": "事件数据，结构随 type 不同而不同",
+      "oneOf": [
+        { "$ref": "#/definitions/BranchCreatedPayload" },
+        { "$ref": "#/definitions/BranchMergedPayload" },
+        { "$ref": "#/definitions/CommitPushedPayload" },
+        { "$ref": "#/definitions/CiFailedPayload" },
+        { "$ref": "#/definitions/PrReviewRequestedPayload" }
+      ]
+    },
+    "required_actions": {
+      "type": "array",
+      "description": "Agent 必须执行的动作（硬流程）",
+      "items": { "type": "string" }
+    },
+    "suggested_actions": {
+      "type": "array",
+      "description": "Agent 可酌情执行的动作（软建议）",
+      "items": { "type": "string" }
+    },
+    "context": {
+      "type": "string",
+      "description": "人类可读的事件描述，帮助 Agent 理解背景"
+    }
+  },
+  "definitions": {
+    "BranchCreatedPayload": {
+      "type": "object",
+      "required": ["branch", "base_branch", "author"],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "新创建的分支名",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}_.+_v\\d+\\.\\d+$"
+        },
+        "base_branch": {
+          "type": "string",
+          "description": "基线分支",
+          "examples": ["main", "develop"]
+        },
+        "author": {
+          "type": "string",
+          "description": "创建者（git config user.name）"
+        }
+      }
+    },
+    "BranchMergedPayload": {
+      "type": "object",
+      "required": ["branch", "target_branch", "author", "commit_count"],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "被合并的分支名"
+        },
+        "target_branch": {
+          "type": "string",
+          "description": "合并目标分支",
+          "examples": ["main"]
+        },
+        "author": {
+          "type": "string",
+          "description": "执行合并的人"
+        },
+        "commit_count": {
+          "type": "integer",
+          "description": "本次合并的 commit 数量",
+          "minimum": 1
+        }
+      }
+    },
+    "CommitPushedPayload": {
+      "type": "object",
+      "required": ["branch", "author", "commit_count", "commit_ids"],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "推送的分支"
+        },
+        "author": {
+          "type": "string",
+          "description": "推送者"
+        },
+        "commit_count": {
+          "type": "integer",
+          "description": "本次推送的 commit 数量",
+          "minimum": 1
+        },
+        "commit_ids": {
+          "type": "array",
+          "description": "commit SHA 列表（短 hash）",
+          "items": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" }
+        }
+      }
+    },
+    "CiFailedPayload": {
+      "type": "object",
+      "required": ["branch", "ci_system", "run_url", "failed_step"],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "description": "CI 失败的分支"
+        },
+        "ci_system": {
+          "type": "string",
+          "description": "CI 系统标识",
+          "examples": ["github-actions", "jenkins", "gitlab-ci"]
+        },
+        "run_url": {
+          "type": "string",
+          "description": "CI 运行详情链接"
+        },
+        "failed_step": {
+          "type": "string",
+          "description": "失败的步骤名称"
+        },
+        "error_log_excerpt": {
+          "type": "string",
+          "description": "错误日志摘要（最后 50 行）"
+        }
+      }
+    },
+    "PrReviewRequestedPayload": {
+      "type": "object",
+      "required": ["pr_number", "pr_title", "pr_url", "author", "target_branch"],
+      "properties": {
+        "pr_number": {
+          "type": "integer",
+          "description": "PR 编号"
+        },
+        "pr_title": {
+          "type": "string",
+          "description": "PR 标题"
+        },
+        "pr_url": {
+          "type": "string",
+          "description": "PR 链接"
+        },
+        "author": {
+          "type": "string",
+          "description": "PR 作者"
+        },
+        "target_branch": {
+          "type": "string",
+          "description": "目标分支"
+        },
+        "reviewer": {
+          "type": "string",
+          "description": "被请求的 reviewer"
+        }
+      }
+    }
+  }
+}
