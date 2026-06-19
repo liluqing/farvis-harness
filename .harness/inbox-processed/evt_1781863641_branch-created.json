@@ -1,0 +1,22 @@
+{
+  "id": "evt_1781863641_branch-created",
+  "type": "branch-created",
+  "priority": "high",
+  "source": "git-hook:post-checkout",
+  "timestamp": "2026-06-19T10:07:21Z",
+  "payload": {
+    "branch": "2026-06-19_积分体系_v1.0",
+    "base_branch": "main",
+    "author": "五一"
+  },
+  "required_actions": [
+    "创建迭代目录 Docs/iterations/2026-06-19_积分体系_v1.0/",
+    "初始化 _meta.yaml（从 core-design/templates/iteration/_meta.yaml 复制）",
+    "初始化 prd.md、tech-design.md、tasks.md、ddl-changes.md、api-changes.md、review-notes.md"
+  ],
+  "suggested_actions": [
+    "询问用户本次迭代的需求范围",
+    "根据需求填充 prd.md 初稿"
+  ],
+  "context": "用户从 main 创建了新分支 2026-06-19_积分体系_v1.0，意味着一个新迭代开始了"
+}

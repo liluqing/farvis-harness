@@ -1,0 +1,21 @@
+iteration: 积分体系
+version: v1.0
+start_date: 2026-06-19
+target_date: 2026-06-26
+status: in_progress
+
+modules_affected:
+  - farvis-credits
+  - farvis-payment
+
+summary: 实现 Credits 积分体系完整闭环——余额查询、套餐购买、支付对接、消费记录
+
+external_refs:
+  prd_url: "~/product-docs/Farvis-AI-PRD-v1.md"
+  issue_url: ""
+  figma_url: ""
+
+archive_info:
+  archive_date: null
+  actual_duration_days: 0
+  retrospective: ""
