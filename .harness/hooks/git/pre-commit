@@ -1,18 +1,24 @@
 #!/bin/bash
-# Git pre-commit hook — 提交前运行快速测试
+# Git pre-commit hook — 提交前运行快速测试 + 文档同步检查
 #
 # 软链接到 .git/hooks/pre-commit：
 #   ln -sf ../../.harness/hooks/git/pre-commit .git/hooks/pre-commit
 #
-# 行为：只跑 fastTest（切片测试），3s 内完成。
-# 如果 fastTest 失败，阻止提交。
+# 行为：
+# 1. 只跑 fastTest（切片测试），3s 内完成
+# 2. 检查文档同步标记（.harness/docs-sync-marker.json）
+# 如果任一检查失败，阻止提交。
 
 set -e
 
 HOOK_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 PROJECT_ROOT="$(cd "$HOOK_DIR/../../.." && pwd)"
 
-echo "🔍 Harness: running fastTest..."
+echo "🔍 Harness: running pre-commit checks..."
+
+# ========== Check 1: fastTest ==========
+echo ""
+echo "📦 Check 1/2: fastTest"
 
 # Gradle 项目
 if [ -f "$PROJECT_ROOT/build.gradle.kts" ] || [ -f "$PROJECT_ROOT/build.gradle" ]; then
@@ -20,20 +26,17 @@ if [ -f "$PROJECT_ROOT/build.gradle.kts" ] || [ -f "$PROJECT_ROOT/build.gradle" 
     # 检查 fastTest task 是否存在
     if ! ./gradlew tasks --all 2>/dev/null | grep -q "fastTest"; then
         echo "⚠️  fastTest task 不存在 — 请在 build.gradle.kts 中添加 fastTest task（参考 .harness/devops/build.gradle.kts）"
-        exit 0
-    fi
-    if ./gradlew fastTest --quiet 2>&1; then
-        echo "✅ fastTest passed"
     else
-        echo "❌ fastTest failed — commit blocked"
-        echo "   Run './gradlew fastTest' to see details"
-        exit 1
+        if ./gradlew fastTest --quiet 2>&1; then
+            echo "✅ fastTest passed"
+        else
+            echo "❌ fastTest failed — commit blocked"
+            echo "   Run './gradlew fastTest' to see details"
+            exit 1
+        fi
     fi
-    exit 0
-fi
-
 # Maven 项目
-if [ -f "$PROJECT_ROOT/pom.xml" ]; then
+elif [ -f "$PROJECT_ROOT/pom.xml" ]; then
     cd "$PROJECT_ROOT"
     if mvn test -pl '!integration-test' --quiet 2>&1; then
         echo "✅ fastTest passed"
@@ -41,8 +44,44 @@ if [ -f "$PROJECT_ROOT/pom.xml" ]; then
         echo "❌ fastTest failed — commit blocked"
         exit 1
     fi
-    exit 0
+else
+    echo "⚠️  No build tool detected — skipping fastTest"
 fi
 
-echo "⚠️  No build tool detected — skipping fastTest"
+# ========== Check 2: docs-sync marker ==========
+echo ""
+echo "📄 Check 2/2: docs-sync marker"
+
+# 如果不是 Harness 项目，跳过此检查
+if [ ! -d "$PROJECT_ROOT/.harness" ]; then
+    echo "⏭️  Not a Harness project — skipping docs-sync check"
+else
+    MARKER_FILE="$PROJECT_ROOT/.harness/docs-sync-marker.json"
+    
+    if [ ! -f "$MARKER_FILE" ]; then
+        echo "⚠️  docs-sync marker file not found: $MARKER_FILE"
+        echo "   如果是首次提交或项目刚初始化，请手动创建标记文件"
+        echo "   参考模板: .harness/core-design/templates/docs-sync-marker.json"
+        exit 1
+    fi
+    
+    # 读取 docs_synced 字段
+    DOCS_SYNCED=$(cat "$MARKER_FILE" | grep -o '"docs_synced"[[:space:]]*:[[:space:]]*\(true\|false\)' | cut -d: -f2 | tr -d ' ' || echo "")
+    
+    if [ "$DOCS_SYNCED" = "true" ]; then
+        echo "✅ docs-sync marker is up-to-date (docs_synced: true)"
+    else
+        echo "❌ docs-sync marker shows docs are outdated — commit blocked"
+        echo "   docs_synced: $DOCS_SYNCED"
+        echo ""
+        echo "   请执行以下操作："
+        echo "   1. 同步文档（api-changes.md / ddl-changes.md / tech-design.md）"
+        echo "   2. 更新 .harness/docs-sync-marker.json 中的 docs_synced 为 true"
+        echo "   3. 如果是迭代归档，运行 harness-archive-iteration skill"
+        exit 1
+    fi
+fi
+
+echo ""
+echo "✅ All pre-commit checks passed"
 exit 0

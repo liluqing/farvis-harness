@@ -2,7 +2,7 @@ iteration: 积分体系
 version: v1.0
 start_date: 2026-06-19
 target_date: 2026-06-26
-status: in_progress
+status: archived
 
 modules_affected:
   - farvis-credits
@@ -16,6 +16,6 @@ external_refs:
   figma_url: ""
 
 archive_info:
-  archive_date: null
-  actual_duration_days: 0
-  retrospective: ""
+  archive_date: 2026-06-19
+  actual_duration_days: 1
+  retrospective: "首次 Harness 实战验证，完整走通需求→设计→开发→前端→联调→归档全流程。后端 25 文件 + 前端 8 文件，联调验证 5/5 场景通过。"

@@ -151,6 +151,18 @@ Agent 拆完后，输出给用户确认：
 - 切片需要调整 → 用户提出修改 → Agent 调整后重新确认
 - 简单迭代（1~3 个切片）→ Agent 拆完直接开始，不等确认
 
+### Agent 内部执行自由度
+
+> **切片内部的实现顺序由 Agent 自主决定，人不需要介入。**
+
+Agent 可以自由决定：
+- 先写 Mapper/Repository 还是先写 Service/Controller
+- 一个切片内先做哪部分代码
+- 是否需要先写骨架再填充、还是一步到位
+- TDD 的节奏（先测试后实现、还是边写边测）
+
+**人只关心交付标准，不关心实现路径。**
+
 ---
 
 ## ③ 逐切片开发
@@ -277,6 +289,32 @@ Agent 分析失败日志
 - 失败 → 进入自修循环
 
 切片级自验通过后：
+
+### 切片完成 checklist
+
+> ⚠️ **每个切片完成后必须执行**，不通过则不进入下一切片。
+
+- [ ] 代码实现完成
+- [ ] 单元测试 + 切片级自验 GREEN
+- [ ] **文档同步**（改完代码必须立即同步，不要等到归档）
+  - [ ] `api-changes.md`：新增/修改的接口已同步（含 Request/Response 示例）
+  - [ ] `ddl-changes.md`：新增/修改的表结构已同步
+  - [ ] `tech-design.md`：接口签名、返回类型与实际代码一致
+  - [ ] `_meta.yaml`：如有临时方案，追加到 `known_limitations`
+- [ ] 更新 `.harness/docs-sync-marker.json`：
+  ```json
+  {
+    "docs_synced": true,
+    "last_synced_at": "<当前时间>",
+    "iteration_id": "<迭代 ID>",
+    "phase": "phase-3",
+    "slice_name": "<切片名>",
+    "updated_files": ["<更新的文档路径>"]
+  }
+  ```
+- [ ] `state.json` 标记切片完成
+
+### 推进
 
 1. 更新 `.harness/flow/shared/state.json`（标记切片完成）
 2. 通报用户进度：「✅ 切片 N/M 完成：<名称>。继续下一切片：<名称>」
