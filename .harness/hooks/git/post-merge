@@ -1,0 +1,71 @@
+#!/bin/bash
+# post-merge hook: 检测分支合并到 main 时，写入 branch-merged 事件
+#
+# 触发条件：将其他分支 merge 到 main
+# 产出：写入 .harness/inbox/ 事件文件
+
+set -e
+
+# 获取当前分支名
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+
+# 如果当前不是 main 分支，退出
+if [ "$CURRENT_BRANCH" != "main" ]; then
+    exit 0
+fi
+
+# 从 reflog 获取最近一次 merge 的信息
+# 格式：merge xxx: Fast-forward 或 merge xxx: Merge made by the 'ort' strategy
+MERGE_ENTRY=$(git reflog show main 2>/dev/null | head -1 || echo "")
+
+# 检查是否是 merge 操作
+if echo "$MERGE_ENTRY" | grep -q "^merge "; then
+    # 提取被 merge 的分支名
+    # reflog 格式：merge <branch-name>: <message>
+    MERGED_BRANCH=$(echo "$MERGE_ENTRY" | sed -n 's/^merge \([^:]*\):.*/\1/p')
+    
+    if [ -n "$MERGED_BRANCH" ]; then
+        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        EVENT_ID="evt_$(date +%s)_branch-merged"
+        
+        # 获取本次 merge 的 commit 数量
+        COMMIT_COUNT=$(git rev-list --count HEAD ^HEAD~1 2>/dev/null || echo "1")
+        
+        EVENT=$(cat <<EOF
+{
+  "id": "$EVENT_ID",
+  "type": "branch-merged",
+  "priority": "high",
+  "source": "git-hook:post-merge",
+  "timestamp": "$TIMESTAMP",
+  "payload": {
+    "branch": "$MERGED_BRANCH",
+    "target_branch": "main",
+    "author": "$(git config user.name)",
+    "commit_count": $COMMIT_COUNT
+  },
+  "required_actions": [
+    "执行归档流程（参照 core-design/templates/archive-checklist.md）",
+    "合并 DDL 变更到 Docs/project/data-model.md",
+    "合并 API 变更到 Docs/project/api-contracts.md",
+    "合并业务文档到 Docs/project/modules/*.md",
+    "移动 Docs/iterations/$MERGED_BRANCH/ 到 Docs/archive/$MERGED_BRANCH/",
+    "更新 Docs/AI-CONTEXT.md（同步 Skill）"
+  ],
+  "suggested_actions": [
+    "更新 project/architecture.md（如有架构变更）",
+    "通知相关人员归档完成"
+  ],
+  "context": "分支 $MERGED_BRANCH 已合并到 main，需要执行迭代归档流程"
+}
+EOF
+)
+        
+        # 写入 inbox
+        mkdir -p .harness/inbox
+        echo "$EVENT" > ".harness/inbox/${EVENT_ID}.json"
+        
+        echo "✅ 检测到分支合并：$MERGED_BRANCH → main"
+        echo "📬 已写入事件到 .harness/inbox/${EVENT_ID}.json"
+    fi
+fi

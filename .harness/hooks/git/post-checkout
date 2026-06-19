@@ -1,0 +1,63 @@
+#!/bin/bash
+# post-checkout hook: 检测从 main 创建新分支时，写入 branch-created 事件
+#
+# 触发条件：从 main 分支 checkout 到新分支
+# 产出：写入 .harness/inbox/ 事件文件
+
+set -e
+
+# 获取当前分支名
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+
+# 如果没有分支名（detached HEAD），退出
+if [ -z "$CURRENT_BRANCH" ]; then
+    exit 0
+fi
+
+# 如果当前分支是 main，退出
+if [ "$CURRENT_BRANCH" = "main" ]; then
+    exit 0
+fi
+
+# 检查是否从 main 分支创建
+# git reflog 可以追踪分支创建历史
+REFLOG_ENTRY=$(git reflog show "$CURRENT_BRANCH" 2>/dev/null | head -1 || echo "")
+
+# 如果 reflog 中包含 "branch: Created from main"，说明是从 main 创建的
+if echo "$REFLOG_ENTRY" | grep -q "branch: Created from main"; then
+    TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    EVENT_ID="evt_$(date +%s)_branch-created"
+    
+    EVENT=$(cat <<EOF
+{
+  "id": "$EVENT_ID",
+  "type": "branch-created",
+  "priority": "high",
+  "source": "git-hook:post-checkout",
+  "timestamp": "$TIMESTAMP",
+  "payload": {
+    "branch": "$CURRENT_BRANCH",
+    "base_branch": "main",
+    "author": "$(git config user.name)"
+  },
+  "required_actions": [
+    "创建迭代目录 Docs/iterations/$CURRENT_BRANCH/",
+    "初始化 _meta.yaml（从 core-design/templates/iteration/_meta.yaml 复制）",
+    "初始化 prd.md、tech-design.md、tasks.md、ddl-changes.md、api-changes.md、review-notes.md"
+  ],
+  "suggested_actions": [
+    "询问用户本次迭代的需求范围",
+    "根据需求填充 prd.md 初稿"
+  ],
+  "context": "用户从 main 创建了新分支 $CURRENT_BRANCH，意味着一个新迭代开始了"
+}
+EOF
+)
+    
+    # 写入 inbox
+    mkdir -p .harness/inbox
+    echo "$EVENT" > ".harness/inbox/${EVENT_ID}.json"
+    
+    echo "✅ 检测到新迭代分支创建：$CURRENT_BRANCH"
+    echo "📬 已写入事件到 .harness/inbox/${EVENT_ID}.json"
+fi
