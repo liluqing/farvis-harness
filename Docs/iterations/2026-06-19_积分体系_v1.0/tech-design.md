@@ -359,17 +359,21 @@ Ctrl --> FE: {items: [...]}
 @enduml
 ```
 
-**响应体定义**
+**响应体定义**（与代码一致，返回 `Result<List<PlanResponse>>`）
 
 ```json
 {
-    "items": [
+    "code": 0,
+    "message": "success",
+    "data": [
         {"code": "starter", "name": "入门版", "price": 99, "credits": 500, "highlighted": false},
         {"code": "pro", "name": "专业版", "price": 299, "credits": 2000, "highlighted": true},
         {"code": "enterprise", "name": "企业版", "price": 999, "credits": 10000, "highlighted": false}
     ]
 }
 ```
+
+> **注意**：响应体为数组，非 `{items: [...]}` 包装。`highlighted` 标识当前推荐套餐。
 
 ### 3.5 消费记录查询流程
 
@@ -394,19 +398,26 @@ FE --> 用户: 展示使用记录列表
 @enduml
 ```
 
-**响应体定义**
+**响应体定义**（与代码一致，返回 `Result<Page<TransactionResponse>>`）
 
 ```json
 {
-    "total": 42,
-    "items": [
-        {"type": "CONSUME", "amount": -50, "balanceAfter": 2430, "description": "视频生成", "createdAt": "2026-06-19T14:30:00"},
-        {"type": "RECHARGE", "amount": 2000, "balanceAfter": 2480, "description": "专业版月度充值", "createdAt": "2026-06-01T00:00:00"}
-    ]
+    "code": 0,
+    "message": "success",
+    "data": {
+        "content": [
+            {"id": 1, "type": "CONSUME", "amount": -50, "balanceAfter": 2430, "description": "视频生成", "createdAt": "2026-06-19T14:30:00"},
+            {"id": 2, "type": "RECHARGE", "amount": 2000, "balanceAfter": 2480, "description": "专业版月度充值", "createdAt": "2026-06-01T00:00:00"}
+        ],
+        "totalElements": 42,
+        "totalPages": 3,
+        "number": 0,
+        "size": 20
+    }
 }
 ```
 
-> 分页参数：默认 pageSize=20，最大 100。
+> 分页参数：默认 pageSize=20，最大 100。响应格式为 Spring Data `Page` 序列化结果。
 
 ### 3.6 新用户注册赠送流程
 
@@ -457,8 +468,8 @@ end
 | 调用方 | video / avatar / voice |
 | 请求体 | `{ "refType": "VIDEO", "refId": "task-123", "consumeType": "VIDEO" }` |
 | 成功响应 | `200 { "balance": 450, "consumed": 50 }` |
-| 余额不足 | `402 { "error": "INSUFFICIENT_BALANCE", "currentBalance": 30, "required": 50 }` |
-| 账户不存在 | `404 { "error": "ACCOUNT_NOT_FOUND" }` |
+| 余额不足 | `402 { "code": 402, "message": "Insufficient credits. Required: 50, Current: 30", "data": null }` |
+| 账户不存在 | `402 { "message": "Credits account not found for user: ..." }` |
 
 #### POST /api/v1/payment/simulate
 
@@ -495,8 +506,8 @@ end
 | 项 | 值 |
 |---|---|
 | 调用方 | UserService（内部） |
-| 请求体 | `{ "userId": long, "giftCredits": 50 }` |
-| 响应 | `200 { "balance": 50 }` |
+| 请求参数 | `userId`（Long，@RequestParam），赠送额度硬编码 50 Credits |
+| 响应 | `200 { "balance": 50, "totalRecharged": 50, "totalConsumed": 0, "currentPlan": null }` |
 
 ### 4.2 模块间调用约定
 
