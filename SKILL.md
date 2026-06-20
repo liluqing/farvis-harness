@@ -221,7 +221,7 @@ cp -r <repo>/stacks/{stack}/scripts/* <target>/.harness/scripts/
 cp -r <repo>/flow/* <target>/.harness/flow/
 ```
 
-包含 Phase 1→4 的流程定义（flow.md + templates）、shared/（状态模板、TDD 五步）和 skill.md（流程总入口）。Agent 在项目内按流程开发时读这些文件。
+包含渐进式发现入口 `skill.md`、发现索引 `discovery.md`、横切协议 `protocols/`、路由规则 `routes/`、生命周期流程 `lifecycle/`、Phase 1→4 的流程定义（flow.md + templates）以及 shared/（状态模板、TDD 五步）。Agent 在项目内先读 `skill.md` 和 `discovery.md`，再按场景渐进加载所需文件。
 
 ### 3.13 初始化 Docs/（文档管理体系）
 
@@ -306,7 +306,7 @@ python3 <repo>/stacks/{stack}/scripts/parameterize.py \
 - `.harness/ai-context/*.yaml` — 结构化上下文（机器友好）
 - `.harness/inbox/` — 外部事件信箱（Agent 启动时优先扫描）
 
-详见 `.harness/flow/skill.md` 中的「文档管理体系」章节。
+详见 `.harness/flow/discovery.md`、`.harness/flow/lifecycle/iteration-model.md` 和 `core-design/03-systems-integration.md`。
 
 ### 开发模板
 
@@ -381,7 +381,7 @@ tasks.register<Test>("fastTest") {
 - .harness/scripts/             → 工具脚本（parameterize.py 模板参数化）
 - .harness/principles/          → 五条方法论
 - .harness/patterns/            → 设计模式
-- .harness/flow/               → 开发流程定义（Phase 1→4 的 flow.md + templates + shared/）
+- .harness/flow/               → 渐进式发现入口 + protocols/routes/lifecycle + Phase 1→4 的 flow.md + templates + shared/
 - .harness/inbox/               → 外部事件信箱（Git Hook / CI 等异步事件）
 - .harness/inbox-processed/     → 已处理事件存档
 
