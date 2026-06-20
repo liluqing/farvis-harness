@@ -131,6 +131,16 @@ chmod +x <target>/.harness/hooks/git/post-merge
 
 如果目标不是 git 仓库（无 `.git/` 目录）→ 跳过此步骤，在初始化报告中标注「Git hooks 未配置（非 git 仓库）」。
 
+### 3.3b 创建运行时状态目录
+
+```bash
+mkdir -p <target>/.harness/flow/shared
+cp <repo>/flow/shared/state.json <target>/.harness/flow/shared/state.json
+```
+
+`state.json` 是 Agent 运行时状态文件——记录当前 Phase、切片进度、TDD 步数。
+**必须放在 `.harness/flow/shared/` 下**，模板源文件在 harness 仓库 `flow/shared/state.json`。
+
 ### 3.4 复制 .harness/skills/（运行时 Skill）
 
 ```bash

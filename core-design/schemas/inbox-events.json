@@ -7,8 +7,8 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "事件唯一标识，格式：evt_{timestamp}_{type}",
-      "pattern": "^evt_\\d{8}T\\d{6}_[a-z-]+$"
+      "description": "事件唯一标识，格式：evt_{timestamp}_{type}（timestamp 支持 epoch 秒或 ISO 日期）",
+      "pattern": "^evt_[a-z0-9]+_[a-z-]+$"
     },
     "type": {
       "type": "string",

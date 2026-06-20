@@ -65,8 +65,12 @@ else
         exit 1
     fi
     
-    # 读取 docs_synced 字段
-    DOCS_SYNCED=$(cat "$MARKER_FILE" | grep -o '"docs_synced"[[:space:]]*:[[:space:]]*\(true\|false\)' | cut -d: -f2 | tr -d ' ' || echo "")
+    # 读取 docs_synced 字段（用 jq，降级为 grep -oP）
+    if command -v jq &>/dev/null; then
+        DOCS_SYNCED=$(jq -r '.docs_synced // empty' "$MARKER_FILE" 2>/dev/null || echo "")
+    else
+        DOCS_SYNCED=$(grep -oP '"docs_synced"\s*:\s*\K(true|false)' "$MARKER_FILE" 2>/dev/null || echo "")
+    fi
     
     if [ "$DOCS_SYNCED" = "true" ]; then
         echo "✅ docs-sync marker is up-to-date (docs_synced: true)"
@@ -78,6 +82,8 @@ else
         echo "   1. 同步文档（api-changes.md / ddl-changes.md / tech-design.md）"
         echo "   2. 更新 .harness/docs-sync-marker.json 中的 docs_synced 为 true"
         echo "   3. 如果是迭代归档，运行 harness-archive-iteration skill"
+        echo ""
+        echo "   🔧 紧急逃生：如果确信文档已同步（如非代码提交），可用 git commit --no-verify 绕过"
         exit 1
     fi
 fi

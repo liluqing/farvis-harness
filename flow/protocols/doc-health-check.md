@@ -18,6 +18,7 @@
 | 架构一致性 | `tech-design.md` / `project-map.yaml` / 代码目录 | 模块数量或名称不一致 | 先对齐架构或 project-map |
 | ai-context 完整性 | `.harness/ai-context/` 是否仍是模板 | 文件空、占位符多 | 从 PRD / project 文档提取 |
 | state 一致性 | `state.json` vs 实际代码/测试/迭代目录 | completed 但产物缺失 | 修正 state 或补齐产物 |
+| state 存在性 | `.harness/flow/shared/state.json` 文件是否存在 | 文件不存在 | 🔴 阻断：必须先执行 `cp flow/shared/state.json .harness/flow/shared/state.json`（参考 SKILL.md 初始化流程） |
 | 迭代目录完整性 | `Docs/iterations/{迭代名}/` | 缺少标准文件 | 从模板补齐 |
 | ADR 有效性 | ADR 中的技术决策是否仍适用 | 决策已变更但未废弃 | 新增或废弃 ADR |
 
