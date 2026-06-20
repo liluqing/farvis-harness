@@ -520,9 +520,9 @@ else:
 **步骤 3：恢复上下文**
 
 恢复时需要重新加载：
-- PRD（`docs/product/prd-<功能名>.md`）
-- 架构文档（如有）
-- 已完成切片的技术设计（`docs/design/design-*.md`）
+- PRD（`Docs/iterations/{迭代名}/prd.md`）
+- 架构文档（`Docs/iterations/{迭代名}/tech-design.md`）
+- 已完成切片的技术设计（同上文件中的切片设计部分）
 - `.harness/ai-context/` 全部上下文
 
 **步骤 4：输出恢复消息**
@@ -633,6 +633,82 @@ Phase 4（集成测试）
 
 ---
 
+## 迭代初始化
+
+新迭代开始时，Agent 必须创建以下文件：
+
+### 1. 迭代目录和文档模板
+
+```bash
+mkdir -p Docs/iterations/{迭代名}
+# 从模板复制（或手动创建）：prd.md, tech-design.md, tasks.md, api-changes.md, ddl-changes.md, review-notes.md, _meta.yaml
+```
+
+### 2. `_meta.yaml` 初始化
+
+```yaml
+iteration: "{迭代名}"
+version: v0.1
+start_date: "{当天日期}"
+target_date: ""
+status: in_progress
+
+modules_affected: []
+
+summary: ""
+
+external_refs:
+  prd_url: ""
+  issue_url: ""
+  figma_url: ""
+
+known_limitations: []
+
+archive_info:  # 归档时填写
+  archive_date: ""
+  actual_duration_days: 0
+  retrospective: ""
+```
+
+### 3. `docs-sync-marker.json` 初始化
+
+项目首次使用 Harness 时创建 `.harness/docs-sync-marker.json`：
+
+```json
+{
+  "docs_synced": true,
+  "last_synced_at": null,
+  "iteration_id": null,
+  "phase": null,
+  "slice_name": null,
+  "updated_files": []
+}
+```
+
+> 此文件由 Git pre-commit hook 检查。`docs_synced: true` 允许提交，`false` 阻止提交。详见「文档同步机制」章节。
+
+### 4. `dev-env.yaml` 环境配置（Phase 3 前）
+
+Phase 3 开发前，如果项目涉及后端服务，创建 `.harness/dev-env.yaml` 统一管理环境配置：
+
+```yaml
+# 参考模板：core-design/templates/dev-env.yaml
+# 集中管理 MySQL 密码、Redis 端口、Maven 参数等，避免散落在多处
+```
+
+> Phase 3 的 `env-check.sh` 会读取此文件。
+
+### 5. `repos.yaml` 多仓库协调（多仓库项目）
+
+如果项目涉及多个仓库（如前后端分离），创建 `.harness/repos.yaml`：
+
+```yaml
+# 参考模板：core-design/templates/repos.yaml
+# 定义 repositories、commit_strategy（all/affected/manual）、分支策略
+```
+
+---
+
 ## 各阶段职责
 
 | 维度 | Phase 1 | Phase 2 | Phase 3 | Phase 4 |
@@ -649,7 +725,7 @@ Phase 4（集成测试）
 2. **该问问、该定定** — 三个分支：A（Agent 自定）/ B（必问用户）/ C（暂定+标记 `[待确认]`）
 3. **Phase 3 自验 ≠ Phase 4 集成测试** — 自验是"我没搞坏别人"，集成测试是"整个系统端到端可工作"
 - **状态跟踪：** 每完成阶段/切片立即更新 `.harness/flow/shared/state.json`
-- **文档路径：** 所有产出文档都写在 `docs/` 目录下，具体路径见各 Phase flow.md
+- **文档路径：** 所有产出文档都写在 `Docs/iterations/{迭代名}/` 目录下，具体路径见各 Phase flow.md
 
 ---
 

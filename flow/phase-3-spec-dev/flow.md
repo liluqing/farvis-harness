@@ -185,11 +185,11 @@ Agent 可以自由决定：
 
 Spec 分析完成后，产出技术设计文档：
 
-**写入路径：** `docs/design/design-<任务名>-<切片名>.md`
+**写入路径：** `Docs/iterations/{迭代名}/tech-design.md`（追加切片设计）
 
-**示例：**
-- 任务 T1（用户模块），切片 1（创建用户）→ `docs/design/design-user-create-user.md`
-- 任务 T1（用户模块），切片 2（查询用户列表）→ `docs/design/design-user-list-users.md`
+例如：
+- 任务 T1（用户模块），切片 1（创建用户）→ 追加到 `tech-design.md` 的对应切片区块
+- 任务 T1（用户模块），切片 2（查询用户列表）→ 追加到 `tech-design.md` 的对应切片区块
 
 **模板：** 参考 `templates/design.md`
 

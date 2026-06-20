@@ -2,14 +2,33 @@
 
 > **Skill 名称**：harness-archive-iteration
 > **用途**：执行迭代归档流程，将迭代文档合并到项目状态文档
-> **触发时机**：迭代开发完成，分支合并到 main 后
+> **触发时机**：用户确认交付完成后说「归档」，或 Phase 4 集成测试通过后
+> **权威 Checklist**：`core-design/templates/archive-checklist.md`（v2.0）
+
+---
+
+## 执行入口
+
+**此 Skill 是 `archive-checklist.md` v2.0 的执行实现。** 归档时加载该 checklist，按 5 个阶段依次执行。
+
+```
+阶段 1：前置检查（_meta.yaml 状态 + tasks.md 全完成 + git 干净）
+    ↓
+阶段 2：文档合并（DDL → data-model.md / API → api-contracts.md / 业务规则 → modules/）
+    ↓
+阶段 3：目录迁移（_meta.yaml → archived，mv iterations/ → archive/）
+    ↓
+阶段 4：AI Context 同步（AI-CONTEXT.md + .ai-context-sync.json）
+    ↓
+阶段 5：提交 + 推送
+```
 
 ---
 
 ## 使用场景
 
 当以下情况发生时，调用此 Skill：
-1. Git Hook 检测到分支合并到 main（`branch-merged` 事件）
+1. Phase 4 完成，用户说「归档」
 2. 用户手动要求"归档迭代 XXX"
 
 ---

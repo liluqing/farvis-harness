@@ -48,7 +48,7 @@ Phase 4 的使命：**全量端到端验证，证明整个系统可工作。**
 
 | 产出 | 写入位置 |
 |------|---------|
-| 集成测试报告 | `docs/integration-test/report-*.md` |
+| 集成测试报告 | `Docs/iterations/{迭代名}/review-notes.md` |
 | 新增错误码 | `.harness/ai-context/error-catalog.yaml`（如有） |
 | 契约测试文件 | `src/test/java/.../contract/`（如有外部 API） |
 
@@ -58,7 +58,7 @@ Phase 4 的使命：**全量端到端验证，证明整个系统可工作。**
 
 > ⚠️ 这个边界必须清楚，否则 Agent 会重复劳动。
 
-| 维度 | Phase 3 阶段⑨（自验） | Phase 4（集成测试） |
+| 维度 | Phase 3 阶段④（自验） | Phase 4（集成测试） |
 |------|------|------|
 | **时机** | 每个任务完成后 | 所有任务完成后 |
 | **范围** | 本任务 + 已有代码不回归 | 全量：所有模块 + 外部依赖 |
@@ -267,7 +267,7 @@ void contract_<provider>_<apiName>_<scenario>() {
 
 ## STEP 5：输出测试报告
 
-写入：`docs/integration-test/report-<功能名>.md`
+写入：`Docs/iterations/{迭代名}/review-notes.md`
 
 ### 报告格式
 
@@ -427,27 +427,29 @@ Agent 提示用户：
 - [ ] `.harness/ai-context/error-catalog.yaml` 中每个错误码至少一个用例 PASS（如项目已接入 Harness）
 - [ ] 新增错误码已补充到 error-catalog.yaml（如有）
 
-### 交付与迭代结束
+### 交付与归档
 
 Agent 输出：
 
 ```
-✅ 迭代 1 完成。集成测试报告已就绪。
+✅ 迭代 1 集成测试完成。
 
 测试结果：
 - X 个场景 PASS
 - Y 个 FAIL（Z 个不可修复）
 
-下一步建议：
-- 如果可交付：说「开始迭代 2」进入下一个需求
+下一步：
+- 说「归档」→ 执行迭代归档流程（参照 archive-checklist.md）
 - 如果有阻塞项：先处理不可修复项，再说「重新跑集成测试」
 ```
 
-**迭代状态更新：**
-- 更新 `.harness/flow/shared/state.json`：`iteration.status` 设为 "completed"
-- 如果开始新迭代，`iteration.id` +1，`iteration.status` 重置为 "in_progress"
+**归档触发**：用户确认交付完成后，Agent 加载 `core-design/templates/archive-checklist.md` 执行归档。
 
-**是否需要用户触发：** 是。迭代结束后必须等用户决定下一个迭代的需求。
+**迭代状态更新：**
+- 更新 `flow/shared/state.json`：`iteration.status` 设为 "completed"
+- 归档完成后：`status` 改为 "archived"，迭代目录迁移到 `Docs/archive/`
+
+**是否需要用户触发：** 是。归档和新迭代都必须等用户决定。
 
 ### Harness 回归（如项目已接入 Java Harness）
 

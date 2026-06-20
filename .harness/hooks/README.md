@@ -12,7 +12,9 @@ hooks/
 ├── git/                   # Git hooks（源文件）
 │   ├── pre-commit         # 提交前 fastTest + 文档同步检查
 │   ├── pre-push           # 推送前全量测试
-│   └── commit-msg         # 提交信息格式校验
+│   ├── commit-msg         # 提交信息格式校验
+│   ├── post-checkout      # 切换分支后：检测新迭代分支，写入事件到 inbox
+│   └── post-merge         # 合并分支后：检测合并事件，写入事件到 inbox
 ├── claude/                # Claude Code hooks（占位）
 ├── codex/                 # Codex hooks（占位）
 └── qoder/                 # Qoder hooks（占位）
@@ -49,3 +51,14 @@ hooks/
 
 - Git hooks：`ln -sf ../../.harness/hooks/git/<hook> .git/hooks/<hook>`
 - AI 工具 hooks：待工具 hook 目录确定后补充
+
+## post-checkout / post-merge
+
+这两个 hook 用于**事件信箱机制**：
+
+- **post-checkout**：切换分支后，检测分支名是否匹配迭代命名模式（如 `2026-06-19_*`），如果是则写入 `branch-created` 事件到 `.harness/inbox/`
+- **post-merge**：合并分支后，写入 `branch-merged` 事件到 `.harness/inbox/`
+
+Agent 在会话初始化时读取 inbox 中的事件，自动恢复迭代上下文。
+
+**详见：** `core-design/01-document-management-and-agent-interaction.md` → "事件信箱"章节

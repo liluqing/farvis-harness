@@ -61,7 +61,7 @@ else
     if [ ! -f "$MARKER_FILE" ]; then
         echo "⚠️  docs-sync marker file not found: $MARKER_FILE"
         echo "   如果是首次提交或项目刚初始化，请手动创建标记文件"
-        echo "   参考模板: .harness/core-design/templates/docs-sync-marker.json"
+        echo "   参考模板: core-design/templates/docs-sync-marker.json（在 harness 源仓库中）"
         exit 1
     fi
     

@@ -76,7 +76,7 @@ Step 3: 针对性优化（按卡点改）         ← 有数据再动手
 | 2.3 | 记录卡点清单 | 用结构化格式记录每个卡点 | 每个卡点有：环节、现象、原因分析、改进方向 | ✅ |
 | 2.4 | 评估资产有效性 | 记录哪些 .harness/ 资产被 Agent 真正使用了 | 有清单：用了什么、没用什么、缺什么 | ✅ |
 
-**卡点摘要（详见 [harness-v0.6-optimization-plan.md](harness-v0.6-optimization-plan.md)）**：
+**卡点摘要（详见 [harness-v0.6-optimization-plan.md](Docs/harness-v0.6-optimization-plan.md)）**：
 
 | 类别 | 卡点数 | 核心问题 |
 |------|:------:|---------|
@@ -95,7 +95,7 @@ Step 3: 针对性优化（按卡点改）         ← 有数据再动手
 
 **目标**：根据 Step 2 暴露的真问题，针对性地改。
 
-**改造方案**：[harness-v0.6-optimization-plan.md](harness-v0.6-optimization-plan.md)
+**改造方案**：[harness-v0.6-optimization-plan.md](Docs/harness-v0.6-optimization-plan.md)
 
 | 优先级 | 改造项 | 解决卡点 | 状态 |
 |--------|--------|---------|:----:|
@@ -136,7 +136,7 @@ Step 3: 针对性优化（按卡点改）         ← 有数据再动手
 
 > 以下改进点来自 Step 2 实战验证，在 Step 3 针对性优化阶段处理。
 > 
-> **详细方案**：[harness-v0.6-optimization-plan.md](harness-v0.6-optimization-plan.md)
+> **详细方案**：[harness-v0.6-optimization-plan.md](Docs/harness-v0.6-optimization-plan.md)
 
 | # | 改进点 | 来源 | 优先级 | 说明 |
 |---|--------|------|--------|------|
@@ -155,7 +155,7 @@ Step 3: 针对性优化（按卡点改）         ← 有数据再动手
 当前版本：**v1.0.0**（经过真实验证的第一版）
 
 版本规则：
-- ~~**Step 1 完成** → v0.4.0（流程对齐）~~ ✅
-- ~~**Step 1 扩展** → v0.5.0（文档管理体系 + 新旧体系整合）~~ ✅
-- ~~**Step 2 完成** → v0.6.0（实战验证 + 卡点清单）~~ ✅
-- ~~**Step 3 完成** → v1.0.0（经过真实验证的第一版）~~ ✅
+- ✅ v0.4.0 — Step 1 完成：流程对齐
+- ✅ v0.5.0 — Step 1 扩展：文档管理体系 + 新旧体系整合
+- ✅ v0.6.0 — Step 2 完成：实战验证 + 卡点清单
+- ✅ v1.0.0 — Step 3 完成：经过真实验证的第一版（当前版本）

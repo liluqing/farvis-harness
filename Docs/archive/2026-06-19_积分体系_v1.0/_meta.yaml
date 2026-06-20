@@ -15,6 +15,13 @@ external_refs:
   issue_url: ""
   figma_url: ""
 
+known_limitations:
+  - id: "KL-001"
+    scope: "farvis-payment"
+    description: "支付接口为模拟实现，未对接真实支付渠道"
+    workaround: "使用 POST /api/v1/payment/simulate 模拟支付成功"
+    resolution: "后续迭代对接支付宝/微信支付时替换"
+
 archive_info:
   archive_date: 2026-06-19
   actual_duration_days: 1
