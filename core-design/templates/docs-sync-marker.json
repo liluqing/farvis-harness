@@ -1,0 +1,11 @@
+{
+  "docs_synced": true,
+  "last_synced_at": "2026-06-19T22:00:00+08:00",
+  "iteration_id": "2026-06-19_积分体系_v1.0",
+  "phase": "phase-3",
+  "slice_name": "S3-PaymentController",
+  "updated_files": [
+    "iterations/2026-06-19_积分体系_v1.0/api-changes.md",
+    "iterations/2026-06-19_积分体系_v1.0/ddl-changes.md"
+  ]
+}

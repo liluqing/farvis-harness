@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farvis-AI</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif; background: #f7f8fa; color: #1a1a1a; }
+a { text-decoration: none; color: inherit; }
+button { border: none; cursor: pointer; font-family: inherit; background: none; }
+input { font-family: inherit; }
+
+/* ===== Header ===== */
+.header {
+  height: 56px; background: #fff;
+  border-bottom: 1px solid #eaeef3;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; position: sticky; top: 0; z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 28px; }
+.logo { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; color: #1a1a1a; margin-right: 12px; }
+.logo-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: linear-gradient(135deg, #ff6a3d, #ff8f65);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: #fff;
+}
+.main-nav { display: flex; gap: 4px; }
+.main-nav a {
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 15px; font-weight: 500; color: #666;
+  transition: all 0.15s;
+}
+.main-nav a:hover { color: #1a1a1a; background: #f5f5f5; }
+.main-nav a.active { color: #1a1a1a; font-weight: 600; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.hdr-btn {
+  padding: 6px 14px; border-radius: 8px;
+  font-size: 13px; color: #666; border: 1px solid #e5e5e5;
+  display: flex; align-items: center; gap: 5px;
+  transition: all 0.15s; background: #fff;
+}
+.hdr-btn:hover { border-color: #ccc; color: #333; }
+.hdr-btn.warm { border-color: #ffd6c0; color: #e8590c; background: #fff8f3; }
+.hdr-btn .tag {
+  position: relative; top: -1px;
+  padding: 1px 5px; border-radius: 4px;
+  background: #ff6a3d; color: #fff; font-size: 10px; font-weight: 600;
+}
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #ff6a3d, #ff8f65);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff; margin-left: 4px;
+  cursor: pointer;
+}
+
+/* ===== Layout ===== */
+.page-wrap { display: flex; height: calc(100vh - 56px); }
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: 180px; background: #fff;
+  border-right: 1px solid #eaeef3;
+  padding: 20px 12px; flex-shrink: 0;
+}
+.sb-section { font-size: 11px; color: #bbb; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 16px 12px 6px; }
+.sb-nav { display: flex; flex-direction: column; gap: 2px; }
+.sb-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; border-radius: 8px;
+  font-size: 14px; color: #666;
+  cursor: pointer; transition: all 0.15s;
+}
+.sb-item:hover { background: #f5f5f5; color: #333; }
+.sb-item.active { background: #f0f0f0; color: #1a1a1a; font-weight: 600; }
+.sb-item .ico { width: 18px; text-align: center; font-size: 14px; }
+
+/* ===== Content ===== */
+.content { flex: 1; overflow-y: auto; background: #f7f8fa; }
+.content.create-mode { background: transparent; }
+.tab-page { display: none; }
+.tab-page.active { display: block; }
+
+/* ===== Tabs / Sub-tabs (asset pages) ===== */
+.tabs-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 32px 0;
+}
+.tabs-left { display: flex; align-items: center; gap: 0; }
+.tab-link {
+  padding: 10px 16px; font-size: 15px; font-weight: 500;
+  color: #999; border-bottom: 2px solid transparent;
+  cursor: pointer; transition: all 0.15s;
+}
+.tab-link:hover { color: #666; }
+.tab-link.active { color: #1a1a1a; font-weight: 600; border-bottom-color: #1a1a1a; }
+.tabs-right { display: flex; gap: 8px; align-items: center; }
+.tab-action {
+  padding: 7px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid #ddd; color: #666; background: #fff;
+  transition: all 0.15s;
+}
+.tab-action:hover { border-color: #bbb; color: #333; }
+.tab-action.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.tab-action.primary:hover { background: #333; }
+.sub-tabs-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px 0;
+}
+.sub-tabs { display: flex; gap: 4px; }
+.sub-tab {
+  padding: 6px 16px; border-radius: 20px;
+  font-size: 13px; color: #888; border: 1px solid transparent;
+  cursor: pointer; transition: all 0.15s;
+}
+.sub-tab:hover { color: #555; background: #f5f5f5; }
+.sub-tab.active { color: #1a1a1a; font-weight: 600; background: #f0f0f0; border-color: #e0e0e0; }
+.search-input {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px;
+  border: 1px solid #e5e5e5; background: #fff; width: 220px;
+}
+.search-input input { border: none; outline: none; font-size: 13px; color: #333; width: 100%; background: transparent; }
+.search-input input::placeholder { color: #bbb; }
+.content-grid { padding: 20px 32px 40px; }
+
+/* ===== Avatar cards (asset page) ===== */
+.avatar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
+.av-card {
+  border-radius: 12px; overflow: hidden; background: #e8e8e8;
+  cursor: pointer; position: relative; aspect-ratio: 3/4;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.av-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.av-photo-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center; font-size: 64px;
+}
+.av-card .av-name {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 24px 12px 10px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  color: #fff; font-size: 13px; font-weight: 600;
+}
+.av-card .av-badge { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; color: #fff; }
+.av-badge.new { background: #ff4d4f; }
+.av-badge.hot { background: #ff6a3d; }
+.av-card .av-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.4);
+  display: none; align-items: center; justify-content: center; gap: 8px;
+}
+.av-card:hover .av-overlay { display: flex; }
+.av-ov-btn {
+  padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  color: #fff; background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3); transition: background 0.15s;
+}
+.av-ov-btn:hover { background: rgba(255,255,255,0.35); }
+.av-ov-btn.primary { background: #fff; color: #1a1a1a; border-color: #fff; }
+.av-card.add-card {
+  background: #fff; border: 2px dashed #ddd;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; color: #bbb; font-size: 13px;
+}
+.av-card.add-card:hover { border-color: #aaa; color: #888; }
+
+/* ===== Video cards ===== */
+.video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.video-card {
+  background: #fff; border-radius: 12px; overflow: hidden;
+  border: 1px solid #eaeef3; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.video-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+.video-thumb {
+  aspect-ratio: 16/9; position: relative;
+  display: flex; align-items: center; justify-content: center; font-size: 40px;
+}
+.video-thumb .play-circle {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #fff; opacity: 0; transition: opacity 0.2s;
+}
+.video-card:hover .play-circle { opacity: 1; }
+.video-thumb .duration {
+  position: absolute; bottom: 8px; right: 8px;
+  padding: 2px 8px; border-radius: 4px;
+  background: rgba(0,0,0,0.6); font-size: 11px; color: #fff;
+}
+.video-thumb .vid-status {
+  position: absolute; top: 8px; left: 8px;
+  padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+}
+.vid-status.done { background: rgba(34,197,94,0.9); color: #fff; }
+.vid-status.processing { background: rgba(59,130,246,0.9); color: #fff; }
+.vid-status.failed { background: rgba(239,68,68,0.9); color: #fff; }
+.video-info { padding: 12px 14px; }
+.video-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.video-meta { font-size: 12px; color: #999; display: flex; gap: 12px; }
+
+/* ===== Voice cards ===== */
+.voice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.voice-card {
+  background: #fff; border-radius: 12px; padding: 20px;
+  border: 1px solid #eaeef3; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.voice-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+.vc-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.vc-avatar { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.vc-avatar.female { background: #fff0f0; }
+.vc-avatar.male { background: #f0f5ff; }
+.vc-avatar.custom { background: #f0fff4; }
+.vc-name { font-size: 15px; font-weight: 600; }
+.vc-lang { font-size: 12px; color: #999; margin-top: 2px; }
+.vc-tags { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.vc-tag { padding: 3px 10px; border-radius: 12px; font-size: 11px; background: #f5f5f5; color: #888; }
+.vc-wave { display: flex; align-items: end; gap: 2px; height: 32px; margin-bottom: 14px; }
+.vc-wave span { flex: 1; background: #e8e8e8; border-radius: 2px; transition: all 0.2s; }
+.vc-wave span.active { background: #ff6a3d; }
+.vc-actions { display: flex; gap: 8px; }
+.vc-btn { flex: 1; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: 500; text-align: center; }
+.vc-btn.ghost { background: #f5f5f5; color: #666; }
+.vc-btn.ghost:hover { background: #eee; }
+.vc-btn.filled { background: #1a1a1a; color: #fff; }
+.vc-btn.filled:hover { background: #333; }
+
+/* ===== Script cards ===== */
+.script-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.script-card {
+  background: #fff; border-radius: 12px; padding: 20px;
+  border: 1px solid #eaeef3; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.script-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+.sc-head { display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px; }
+.sc-title { font-size: 15px; font-weight: 600; }
+.sc-type { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #f5f5f5; color: #888; }
+.sc-preview { font-size: 13px; color: #888; line-height: 1.6; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sc-footer { display: flex; justify-content: space-between; align-items: center; }
+.sc-date { font-size: 11px; color: #bbb; }
+.sc-use { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #f5f5f5; color: #666; transition: all 0.15s; }
+.sc-use:hover { background: #1a1a1a; color: #fff; }
+
+/* ===== Media cards ===== */
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.media-card {
+  aspect-ratio: 1; border-radius: 10px; overflow: hidden;
+  cursor: pointer; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; transition: transform 0.2s;
+}
+.media-card:hover { transform: scale(1.03); }
+.media-card .media-tag {
+  position: absolute; top: 8px; left: 8px;
+  padding: 2px 8px; border-radius: 4px;
+  background: rgba(0,0,0,0.5); font-size: 10px; color: #fff;
+}
+
+/* ====================================================
+   创作页 - HeyGen 风格
+   ==================================================== */
+.create-page {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100%; padding: 40px 24px 60px;
+  background: linear-gradient(135deg, #d4f5f0 0%, #e8dff5 35%, #f5e6f0 65%, #d4f0f7 100%);
+  position: relative;
+}
+.create-page::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(168,210,238,0.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 30%, rgba(216,191,216,0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(180,230,230,0.3) 0%, transparent 50%);
+  pointer-events: none;
+}
+.create-page > * { position: relative; z-index: 1; }
+
+.create-title {
+  font-size: 40px; font-weight: 800; color: #1a1a1a;
+  text-align: center; margin-bottom: 8px;
+}
+.create-subtitle {
+  font-size: 16px; color: #888; text-align: center; margin-bottom: 36px;
+}
+
+/* Chat input box */
+.chat-box {
+  width: 100%; max-width: 680px;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(20px);
+  border-radius: 20px; border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+  padding: 20px 24px;
+}
+
+/* Chips row */
+.chips-row {
+  display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px 6px 6px; border-radius: 20px;
+  background: #fff; border: 1px solid #e8e8e8;
+  cursor: pointer; transition: all 0.15s;
+  font-size: 13px; color: #333;
+}
+.chip:hover { border-color: #ccc; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.chip-icon {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.chip-icon.avatar-icon {
+  background: linear-gradient(135deg, #fde68a, #fbbf24);
+}
+.chip-icon.voice-icon {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+.chip-icon.style-icon {
+  background: #f3e8ff;
+  color: #9333ea;
+}
+.chip-icon.bg-icon {
+  background: #fef3c7;
+  color: #d97706;
+}
+.chip-text { display: flex; flex-direction: column; }
+.chip-label { font-weight: 600; font-size: 13px; line-height: 1.2; }
+.chip-sub { font-size: 10px; color: #999; }
+
+/* Textarea */
+.chat-textarea {
+  width: 100%; min-height: 60px; border: none; outline: none;
+  background: transparent; font-size: 15px; line-height: 1.6;
+  color: #333; resize: none;
+}
+.chat-textarea::placeholder { color: #bbb; }
+
+/* Chat toolbar */
+.chat-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.05);
+}
+.chat-left { display: flex; gap: 6px; }
+.chat-tool-btn {
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: #888; background: transparent;
+  transition: all 0.15s;
+}
+.chat-tool-btn:hover { background: rgba(0,0,0,0.05); color: #555; }
+.chat-right { display: flex; gap: 8px; align-items: center; }
+.chat-mode {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 13px; color: #888; background: transparent;
+  transition: all 0.15s;
+}
+.chat-mode:hover { background: rgba(0,0,0,0.04); color: #555; }
+.btn-submit {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: #1a1a1a; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; transition: all 0.15s;
+}
+.btn-submit:hover { background: #333; transform: scale(1.05); }
+
+/* ===== Modal ===== */
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(4px); z-index: 200;
+  display: none; align-items: center; justify-content: center;
+}
+.modal-mask.open { display: flex; }
+.modal {
+  background: #fff; border-radius: 16px;
+  width: 560px; max-height: 80vh;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column;
+  animation: modalIn 0.25s ease-out;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px; border-bottom: 1px solid #f0f0f0;
+}
+.modal-header h3 { font-size: 17px; font-weight: 700; }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #999; transition: all 0.15s;
+}
+.modal-close:hover { background: #f5f5f5; color: #333; }
+.modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.modal-search {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 10px;
+  border: 1px solid #e5e5e5; margin-bottom: 16px;
+}
+.modal-search input { border: none; outline: none; font-size: 13px; width: 100%; background: transparent; }
+.modal-search input::placeholder { color: #bbb; }
+
+/* Modal: avatar grid */
+.modal-av-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.modal-av {
+  aspect-ratio: 3/4; border-radius: 10px; overflow: hidden;
+  border: 2px solid transparent; cursor: pointer;
+  position: relative; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; background: #f5f5f5;
+  transition: all 0.15s;
+}
+.modal-av:hover { border-color: #ddd; }
+.modal-av.selected { border-color: #1a1a1a; }
+.modal-av .ma-emoji { font-size: 36px; margin-bottom: 4px; }
+.modal-av .ma-name { font-size: 11px; font-weight: 600; color: #555; }
+.modal-av .ma-tag {
+  position: absolute; top: 6px; right: 6px;
+  padding: 1px 6px; border-radius: 3px;
+  background: #e8e8e8; font-size: 9px; color: #888;
+}
+
+/* Modal: voice list */
+.modal-vr-list { display: flex; flex-direction: column; gap: 8px; }
+.modal-vr {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 10px;
+  border: 1px solid #e5e5e5; cursor: pointer;
+  transition: all 0.15s; background: #fff;
+}
+.modal-vr:hover { border-color: #ddd; background: #fafafa; }
+.modal-vr.selected { border-color: #1a1a1a; background: #f9f9f9; }
+.modal-vr .mvr-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: #f5f5f5; display: flex; align-items: center;
+  justify-content: center; font-size: 16px; flex-shrink: 0;
+}
+.modal-vr.selected .mvr-icon { background: #e8e8e8; }
+.modal-vr .mvr-info { flex: 1; }
+.modal-vr .mvr-name { font-size: 13px; font-weight: 600; }
+.modal-vr .mvr-meta { font-size: 11px; color: #999; margin-top: 1px; }
+.mvr-play {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #f5f5f5; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; color: #666;
+  flex-shrink: 0; transition: background 0.15s;
+}
+.mvr-play:hover { background: #eee; }
+
+/* Modal: bg grid */
+.modal-bg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.modal-bg {
+  border-radius: 10px; overflow: hidden; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.15s;
+}
+.modal-bg:hover { border-color: #ddd; }
+.modal-bg.selected { border-color: #1a1a1a; }
+.mbg-preview { aspect-ratio: 16/10; }
+.mbg-name { padding: 6px 8px; font-size: 11px; font-weight: 600; color: #555; text-align: center; background: #fff; }
+
+/* ===== 创建数字人页 ===== */
+.createav-page { padding: 32px; max-width: 900px; }
+.createav-header { margin-bottom: 32px; }
+.createav-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.createav-header p { font-size: 14px; color: #999; }
+.createav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.createav-card {
+  background: #fff; border-radius: 16px; border: 2px solid #eaeef3;
+  padding: 36px 28px; cursor: pointer; text-align: center;
+  transition: all 0.2s; position: relative; overflow: hidden;
+}
+.createav-card:hover { border-color: #1a1a1a; transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+.createav-card .ca-icon {
+  width: 72px; height: 72px; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; margin: 0 auto 20px;
+}
+.createav-card .ca-icon.video-bg { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+.createav-card .ca-icon.photo-bg { background: linear-gradient(135deg, #fce7f3, #fbcfe8); }
+.createav-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.createav-card p { font-size: 13px; color: #999; line-height: 1.6; margin-bottom: 20px; }
+.createav-card .ca-badge {
+  position: absolute; top: 16px; right: 16px;
+  padding: 3px 10px; border-radius: 6px;
+  font-size: 11px; font-weight: 600;
+}
+.createav-card .ca-badge.rec { background: #dcfce7; color: #166534; }
+.createav-card .ca-badge.new { background: #fef3c7; color: #92400e; }
+.createav-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 28px; border-radius: 10px;
+  font-size: 14px; font-weight: 600;
+  background: #1a1a1a; color: #fff; transition: all 0.15s;
+}
+.createav-btn:hover { background: #333; transform: translateY(-1px); }
+.createav-steps {
+  margin-top: 32px; background: #fff; border-radius: 16px;
+  border: 1px solid #eaeef3; padding: 28px;
+}
+.createav-steps h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.createav-step-list { display: flex; flex-direction: column; gap: 14px; }
+.cas-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-radius: 10px;
+  background: #f9fafb; border: 1px solid #f0f0f0;
+}
+.cas-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+  background: #1a1a1a; flex-shrink: 0;
+}
+.cas-text { font-size: 14px; color: #333; }
+.cas-text span { color: #999; font-size: 12px; }
+
+.modal-footer {
+  padding: 16px 24px; border-top: 1px solid #f0f0f0;
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+.modal-btn {
+  padding: 9px 24px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; transition: all 0.15s;
+}
+.modal-btn.cancel { background: #f5f5f5; color: #666; }
+.modal-btn.cancel:hover { background: #eee; }
+.modal-btn.confirm { background: #1a1a1a; color: #fff; }
+.modal-btn.confirm:hover { background: #333; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; top: 72px; right: 32px; z-index: 300;
+  padding: 12px 20px; border-radius: 10px;
+  background: #fff; border: 1px solid #eaeef3;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: #333;
+  transform: translateY(-10px); opacity: 0;
+  transition: all 0.25s; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo"><div class="logo-icon">V</div><span>Farvis-AI</span></div>
+  </div>
+  <div class="header-right">
+    <button class="hdr-btn warm"><span class="tag">领福利</span> 企业服务</button>
+    <button class="hdr-btn">📱 App</button>
+    <button class="hdr-btn">👑 购买会员</button>
+    <button class="hdr-btn warm">🎁 领会员</button>
+    <div class="user-avatar">Y</div>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="appSidebar">
+    <nav class="sb-nav">
+      <div class="sb-item" onclick="goCreate()" style="background:#f3f4f6;font-weight:600;"><span class="ico">✨</span> 制作视频</div>
+    </nav>
+    <div class="sb-section">资产</div>
+    <nav class="sb-nav">
+      <div class="sb-item active" onclick="switchTab('video',this)"><span class="ico">🎬</span> 视频</div>
+      <div class="sb-item" onclick="switchTab('avatar',this)"><span class="ico">🧑‍💼</span> 数字人</div>
+      <div class="sb-item" onclick="switchTab('voice',this)"><span class="ico">🎙️</span> 声音</div>
+      <div class="sb-item" onclick="switchTab('media',this)"><span class="ico">🖼️</span> 素材</div>
+    </nav>
+    <div class="sb-section">账户</div>
+    <nav class="sb-nav">
+      <div class="sb-item" onclick="switchTab('credits',this)"><span class="ico">💳</span> 积分中心</div>
+      <div class="sb-item" onclick="toast('⚙️','设置页面开发中')"><span class="ico">⚙️</span> 设置</div>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ====== 创作页 ====== -->
+    <div class="tab-page active" id="tp-create">
+      <div class="create-page">
+        <div class="create-title">用视频表达</div>
+        <div class="create-subtitle">Farvis-AI 全新一体化视频创作智能体</div>
+
+        <div class="chat-box">
+          <!-- Chips -->
+          <div class="chips-row">
+            <div class="chip" id="chipAvatar" onclick="openModal('avatar')">
+              <div class="chip-icon avatar-icon" id="chipAvIcon">👩‍💼</div>
+              <div class="chip-text">
+                <span class="chip-label" id="chipAvName">杨学瑞</span>
+                <span class="chip-sub">Avatar</span>
+              </div>
+            </div>
+            <div class="chip" id="chipVoice" onclick="openModal('voice')">
+              <div class="chip-icon voice-icon">▶</div>
+              <div class="chip-text">
+                <span class="chip-label" id="chipVrName">雷军演讲</span>
+                <span class="chip-sub">Voice</span>
+              </div>
+            </div>
+            <div class="chip" id="chipBg" onclick="openModal('bg')">
+              <div class="chip-icon bg-icon">🖼️</div>
+              <div class="chip-text">
+                <span class="chip-label" id="chipBgName">自动</span>
+                <span class="chip-sub">背景</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Textarea -->
+          <textarea class="chat-textarea" placeholder="可以提出 视频、虚拟形象 或介于两者之间的需求——我能为你开启"></textarea>
+
+          <!-- Toolbar -->
+          <div class="chat-toolbar">
+            <div class="chat-left">
+              <button class="chat-tool-btn" title="上传附件">+</button>
+              <button class="chat-tool-btn" title="插入链接">🔗</button>
+            </div>
+            <div class="chat-right">
+              <button class="chat-mode">💬 聊天 ▾</button>
+              <button class="btn-submit" onclick="toast('✅','已提交创作需求')">➤</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 最近视频 -->
+        <div style="width:100%;max-width:800px;margin-top:36px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <span style="font-size:15px;font-weight:700;color:#333;">最近视频</span>
+            <span style="font-size:13px;color:#999;cursor:pointer;" onclick="switchTab('video',null)">查看全部 →</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+            <div style="background:rgba(255,255,255,0.7);backdrop-filter:blur(8px);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.9);cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+              <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#e0e7ff,#c7d2fe);display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;">🎬<span style="position:absolute;bottom:6px;right:6px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,0.5);font-size:10px;color:#fff;">01:23</span></div>
+              <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:600;color:#333;margin-bottom:2px;">SaaS 产品介绍</div><div style="font-size:11px;color:#999;">2026-06-15 · 已完成</div></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.7);backdrop-filter:blur(8px);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.9);cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+              <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#fce7f3,#fbcfe8);display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;">📢<span style="position:absolute;bottom:6px;right:6px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,0.5);font-size:10px;color:#fff;">00:58</span></div>
+              <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:600;color:#333;margin-bottom:2px;">618 营销口播</div><div style="font-size:11px;color:#999;">2026-06-14 · 已完成</div></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.7);backdrop-filter:blur(8px);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.9);cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+              <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;">📚<span style="position:absolute;top:6px;left:6px;padding:2px 6px;border-radius:4px;background:rgba(59,130,246,0.9);font-size:10px;color:#fff;">生成中</span></div>
+              <div style="padding:10px 12px;"><div style="font-size:13px;font-weight:600;color:#333;margin-bottom:2px;">AI 教程 - 第3集</div><div style="font-size:11px;color:#999;">2026-06-16 · 生成中</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-page" id="tp-video">
+      <div class="tabs-bar">
+        <div class="tabs-left">
+          <div class="tab-link active" onclick="return false">我的视频</div>
+        </div>
+        <div class="tabs-right">
+          <button class="tab-action">批量管理</button>
+          <button class="tab-action primary" onclick="goCreate()">+ 创建视频</button>
+        </div>
+      </div>
+      <div class="sub-tabs-bar">
+        <div class="sub-tabs">
+          <div class="sub-tab active">全部</div>
+          <div class="sub-tab">已完成</div>
+          <div class="sub-tab">生成中</div>
+          <div class="sub-tab">失败</div>
+        </div>
+        <div class="search-input"><span>🔍</span><input placeholder="搜索视频名称..."></div>
+      </div>
+      <div class="content-grid">
+        <div class="video-grid">
+          <div class="video-card">
+            <div class="video-thumb" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);">
+              <div class="play-circle">▶</div><div class="duration">01:23</div>
+              <div class="vid-status done">已完成</div><span>🎬</span>
+            </div>
+            <div class="video-info"><h4>SaaS 产品功能介绍</h4><div class="video-meta"><span>👩‍💼 商务女性</span><span>2026-06-15</span></div></div>
+          </div>
+          <div class="video-card">
+            <div class="video-thumb" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);">
+              <div class="play-circle">▶</div><div class="duration">00:58</div>
+              <div class="vid-status done">已完成</div><span>📢</span>
+            </div>
+            <div class="video-info"><h4>618 营销促销口播</h4><div class="video-meta"><span>👨‍💻 专业男性</span><span>2026-06-14</span></div></div>
+          </div>
+          <div class="video-card">
+            <div class="video-thumb" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">
+              <div class="play-circle">▶</div>
+              <div class="vid-status processing">生成中</div><span>📚</span>
+            </div>
+            <div class="video-info"><h4>AI 教程 - 第3集</h4><div class="video-meta"><span>👩‍🏫 教育讲师</span><span>2026-06-16</span></div></div>
+          </div>
+          <div class="video-card">
+            <div class="video-thumb" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);">
+              <div class="play-circle">▶</div><div class="duration">02:10</div>
+              <div class="vid-status done">已完成</div><span>🌍</span>
+            </div>
+            <div class="video-info"><h4>英语产品讲解</h4><div class="video-meta"><span>👩‍💼 商务女性</span><span>2026-06-12</span></div></div>
+          </div>
+          <div class="video-card">
+            <div class="video-thumb" style="background:linear-gradient(135deg,#fee2e2,#fecaca);">
+              <div class="play-circle">▶</div>
+              <div class="vid-status failed">失败</div><span>📦</span>
+            </div>
+            <div class="video-info"><h4>产品发布视频</h4><div class="video-meta"><span>🧑‍🎤 活力青年</span><span>2026-06-13</span></div></div>
+          </div>
+          <div class="video-card">
+            <div class="video-thumb" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">
+              <div class="play-circle">▶</div><div class="duration">03:45</div>
+              <div class="vid-status done">已完成</div><span>💡</span>
+            </div>
+            <div class="video-info"><h4>科技前沿 - 芯片解读</h4><div class="video-meta"><span>🧑‍🔬 科技达人</span><span>2026-06-10</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 数字人 Page ====== -->
+    <div class="tab-page" id="tp-avatar">
+      <div class="tabs-bar">
+        <div class="tabs-left"><div class="tab-link active" onclick="return false">全部数字人</div></div>
+        <div class="tabs-right">
+          <button class="tab-action">批量管理</button>
+          <button class="tab-action primary" onclick="switchTab('createav', null)">创建数字人</button>
+        </div>
+      </div>
+      <div class="sub-tabs-bar">
+        <div class="sub-tabs">
+          <div class="sub-tab active">全部</div>
+          <div class="sub-tab">视频生成</div>
+          <div class="sub-tab">照片生成</div>
+        </div>
+        <div class="search-input"><span>🔍</span><input placeholder="请输入数字人名称"></div>
+      </div>
+      <div class="content-grid">
+        <div class="avatar-grid">
+          <div class="av-card"><div class="av-photo-placeholder" style="background:linear-gradient(135deg,#fde68a,#fbbf24);">👩‍💼</div><div class="av-badge new">NEW</div><div class="av-name">杨学瑞</div><div class="av-overlay"><button class="av-ov-btn">预览</button><button class="av-ov-btn primary" onclick="event.stopPropagation();openModal('avatar')">使用</button></div></div>
+          <div class="av-card"><div class="av-photo-placeholder" style="background:linear-gradient(135deg,#c7d2fe,#818cf8);">👨‍💻</div><div class="av-name">专业男性</div><div class="av-overlay"><button class="av-ov-btn">预览</button><button class="av-ov-btn primary" onclick="event.stopPropagation();openModal('avatar')">使用</button></div></div>
+          <div class="av-card"><div class="av-photo-placeholder" style="background:linear-gradient(135deg,#a7f3d0,#6ee7b7);">👩‍🏫</div><div class="av-name">教育讲师</div><div class="av-overlay"><button class="av-ov-btn">预览</button><button class="av-ov-btn primary" onclick="event.stopPropagation();openModal('avatar')">使用</button></div></div>
+          <div class="av-card"><div class="av-photo-placeholder" style="background:linear-gradient(135deg,#fbcfe8,#f9a8d4);">🧑‍🎤</div><div class="av-badge hot">HOT</div><div class="av-name">活力青年</div><div class="av-overlay"><button class="av-ov-btn">预览</button><button class="av-ov-btn primary" onclick="event.stopPropagation();openModal('avatar')">使用</button></div></div>
+          <div class="av-card"><div class="av-photo-placeholder" style="background:linear-gradient(135deg,#bae6fd,#7dd3fc);">🧑‍🔬</div><div class="av-name">科技达人</div><div class="av-overlay"><button class="av-ov-btn">预览</button><button class="av-ov-btn primary" onclick="event.stopPropagation();openModal('avatar')">使用</button></div></div>
+          <div class="av-card"><div class="av-photo-placeholder" style="background:linear-gradient(135deg,#fecaca,#fca5a5);">👩‍⚖️</div><div class="av-name">新闻主播</div><div class="av-overlay"><button class="av-ov-btn">预览</button><button class="av-ov-btn primary" onclick="event.stopPropagation();openModal('avatar')">使用</button></div></div>
+          <div class="av-card"><div class="av-photo-placeholder" style="background:linear-gradient(135deg,#d9f99d,#bef264);">👨‍🎤</div><div class="av-name">我的数字人</div><div class="av-overlay"><button class="av-ov-btn">预览</button><button class="av-ov-btn primary" onclick="event.stopPropagation();openModal('avatar')">使用</button></div></div>
+          <div class="av-card add-card" onclick="switchTab('createav', null)"><div style="font-size:32px;">+</div><span>创建数字人</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 创建数字人 Page ====== -->
+    <div class="tab-page" id="tp-createav">
+      <div class="createav-page">
+        <div class="createav-header">
+          <h2>创建数字人</h2>
+          <p>选择一种方式，快速创建专属的数字人形象</p>
+        </div>
+        <div class="createav-grid">
+          <div class="createav-card" onclick="showUploadModal('video')">
+            <div class="ca-badge rec">推荐</div>
+            <div class="ca-icon video-bg">🎬</div>
+            <h3>根据视频创建</h3>
+            <p>上传一段人物说话视频，AI 自动学习面部特征与动作，生成高还原度的数字人形象（Digital Twin）</p>
+            <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px;">
+              <span style="padding:3px 10px;border-radius:6px;font-size:11px;background:#f3f4f6;color:#888;">高还原度</span>
+              <span style="padding:3px 10px;border-radius:6px;font-size:11px;background:#f3f4f6;color:#888;">需授权</span>
+            </div>
+            <button class="createav-btn">上传视频 →</button>
+          </div>
+          <div class="createav-card" onclick="showUploadModal('photo')">
+            <div class="ca-badge new">NEW</div>
+            <div class="ca-icon photo-bg">📸</div>
+            <h3>根据图片创建</h3>
+            <p>上传一张正面照片，AI 自动识别人物面部，快速生成可说话的数字人，无需录制视频</p>
+            <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px;">
+              <span style="padding:3px 10px;border-radius:6px;font-size:11px;background:#f3f4f6;color:#888;">快速</span>
+              <span style="padding:3px 10px;border-radius:6px;font-size:11px;background:#f3f4f6;color:#888;">无需录制</span>
+            </div>
+            <button class="createav-btn">上传照片 →</button>
+          </div>
+        </div>
+
+        <div class="createav-steps">
+          <h3>创建流程</h3>
+          <div class="createav-step-list">
+            <div class="cas-item"><div class="cas-num">1</div><div class="cas-text">上传素材 <span>— 视频或照片</span></div></div>
+            <div class="cas-item"><div class="cas-num">2</div><div class="cas-text">AI 训练中 <span>— 自动学习面部特征（约 5-10 分钟）</span></div></div>
+            <div class="cas-item"><div class="cas-num">3</div><div class="cas-text">预览确认 <span>— 检查数字人效果，不满意可重新生成</span></div></div>
+            <div class="cas-item"><div class="cas-num">4</div><div class="cas-text">完成创建 <span>— 即可在视频创作中使用（视频类型需完成授权）</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 声音 Page ====== -->
+    <div class="tab-page" id="tp-voice">
+      <div class="tabs-bar">
+        <div class="tabs-left"><div class="tab-link active" onclick="return false">全部音色</div></div>
+        <div class="tabs-right"><button class="tab-action primary" onclick="openModal('cloneVoice')">+ 克隆语音</button></div>
+      </div>
+      <div class="sub-tabs-bar">
+        <div class="sub-tabs">
+          <div class="sub-tab active">全部</div>
+          <div class="sub-tab">女声</div>
+          <div class="sub-tab">男声</div>
+          <div class="sub-tab">多语言</div>
+          <div class="sub-tab">我的克隆</div>
+        </div>
+      </div>
+      <div class="content-grid">
+        <div class="voice-grid">
+          <div class="voice-card"><div class="vc-top"><div class="vc-avatar female">🎤</div><div><div class="vc-name">晓晓</div><div class="vc-lang">中文 · 女声</div></div></div><div class="vc-tags"><span class="vc-tag">自然</span><span class="vc-tag">温暖</span><span class="vc-tag">亲切</span></div><div class="vc-wave" data-wave></div><div class="vc-actions"><button class="vc-btn ghost" onclick="playWave(this)">▶ 试听</button></div></div>
+          <div class="voice-card"><div class="vc-top"><div class="vc-avatar male">🎤</div><div><div class="vc-name">云扬</div><div class="vc-lang">中文 · 男声</div></div></div><div class="vc-tags"><span class="vc-tag">专业</span><span class="vc-tag">沉稳</span><span class="vc-tag">大气</span></div><div class="vc-wave" data-wave></div><div class="vc-actions"><button class="vc-btn ghost" onclick="playWave(this)">▶ 试听</button></div></div>
+          <div class="voice-card"><div class="vc-top"><div class="vc-avatar female">🎤</div><div><div class="vc-name">Jenny</div><div class="vc-lang">English · Female</div></div></div><div class="vc-tags"><span class="vc-tag">Professional</span><span class="vc-tag">Clear</span></div><div class="vc-wave" data-wave></div><div class="vc-actions"><button class="vc-btn ghost" onclick="playWave(this)">▶ 试听</button></div></div>
+          <div class="voice-card"><div class="vc-top"><div class="vc-avatar female">🎤</div><div><div class="vc-name">Yuki</div><div class="vc-lang">日本語 · 女声</div></div></div><div class="vc-tags"><span class="vc-tag">明るい</span><span class="vc-tag">優しい</span></div><div class="vc-wave" data-wave></div><div class="vc-actions"><button class="vc-btn ghost" onclick="playWave(this)">▶ 试听</button></div></div>
+          <div class="voice-card"><div class="vc-top"><div class="vc-avatar custom">🎙️</div><div><div class="vc-name">我的克隆语音</div><div class="vc-lang">自定义 · 已训练完成</div></div></div><div class="vc-tags"><span class="vc-tag" style="background:#dcfce7;color:#166534;">克隆</span><span class="vc-tag">已训练</span></div><div class="vc-wave" data-wave></div><div class="vc-actions"><button class="vc-btn ghost" onclick="playWave(this)">▶ 试听</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 素材 Page ====== -->
+    <div class="tab-page" id="tp-media">
+      <div class="tabs-bar">
+        <div class="tabs-left"><div class="tab-link active" onclick="return false">我的素材</div></div>
+        <div class="tabs-right">
+          <button class="tab-action">上传素材</button>
+          <button class="tab-action primary" onclick="toast('🖼️','AI 素材生成即将上线')">+ AI 生成</button>
+        </div>
+      </div>
+      <div class="sub-tabs-bar">
+        <div class="sub-tabs">
+          <div class="sub-tab active" onclick="switchMediaTab('all',this)">全部</div>
+          <div class="sub-tab" onclick="switchMediaTab('img',this)">图片</div>
+          <div class="sub-tab" onclick="switchMediaTab('video',this)">视频片段</div>
+          <div class="sub-tab" onclick="switchMediaTab('audio',this)">音频</div>
+          <div class="sub-tab" onclick="switchMediaTab('script',this)">文案</div>
+        </div>
+      </div>
+      <div class="content-grid">
+        <!-- 全部/图片/视频/音频 -->
+        <div class="media-grid" id="mediaGridAll">
+          <div class="media-card" data-type="img" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);"><div class="media-tag">图片</div>🖼️</div>
+          <div class="media-card" data-type="img" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);"><div class="media-tag">图片</div>🎨</div>
+          <div class="media-card" data-type="video" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);"><div class="media-tag">视频</div>🎬</div>
+          <div class="media-card" data-type="img" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);"><div class="media-tag">图片</div>🏢</div>
+          <div class="media-card" data-type="audio" style="background:linear-gradient(135deg,#fee2e2,#fecaca);"><div class="media-tag">音频</div>🎵</div>
+          <div class="media-card" data-type="video" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);"><div class="media-tag">视频</div>📹</div>
+        </div>
+        <!-- 文案 -->
+        <div class="script-grid" id="mediaGridScript" style="display:none;">
+          <div class="script-card"><div class="sc-head"><div class="sc-title">SaaS 产品介绍文案</div><div class="sc-type">AI 生成</div></div><div class="sc-preview">大家好！欢迎使用 AI Video Studio。今天我将为大家介绍如何利用 AI 数字人技术，快速制作专业的营销视频...</div><div class="sc-footer"><span class="sc-date">2026-06-15</span><button class="sc-use" onclick="goCreate()">使用此文案</button></div></div>
+          <div class="script-card"><div class="sc-head"><div class="sc-title">618 营销口播稿</div><div class="sc-type">手动输入</div></div><div class="sc-preview">618 大促来袭！限时特惠，全场低至5折。精选好物，不容错过。立即下单，享受专属优惠...</div><div class="sc-footer"><span class="sc-date">2026-06-14</span><button class="sc-use" onclick="goCreate()">使用此文案</button></div></div>
+          <div class="script-card"><div class="sc-head"><div class="sc-title">AI 入门教程脚本</div><div class="sc-type">AI 生成</div></div><div class="sc-preview">今天我们来学习 AI 的基础知识。人工智能正在改变我们的生活，从智能语音助手到自动驾驶...</div><div class="sc-footer"><span class="sc-date">2026-06-12</span><button class="sc-use" onclick="goCreate()">使用此文案</button></div></div>
+          <div class="script-card"><div class="sc-head"><div class="sc-title">品牌宣传模板</div><div class="sc-type">模板</div></div><div class="sc-preview">欢迎来到 [品牌名]。我们致力于 [核心价值]，为每一位用户提供 [产品优势]。选择我们...</div><div class="sc-footer"><span class="sc-date">模板</span><button class="sc-use" onclick="goCreate()">使用此模板</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 积分中心 Page ====== -->
+    <div class="tab-page" id="tp-credits" style="display:none;">
+      <div style="padding:24px 28px;max-width:960px;">
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:28px;">
+          <div style="background:#fff;border-radius:12px;padding:24px;border:1px solid #eaeef3;">
+            <div style="font-size:13px;color:#999;margin-bottom:4px;">当前余额</div>
+            <div style="font-size:36px;font-weight:800;color:#6366f1;">2,480</div>
+            <div style="font-size:12px;color:#999;margin-top:4px;">专业版 · 2,000 Credits/月 · 已用 60%</div>
+            <div style="height:6px;background:#f3f4f6;border-radius:3px;margin-top:14px;overflow:hidden;">
+              <div style="width:60%;height:100%;background:linear-gradient(90deg,#6366f1,#818cf8);border-radius:3px;"></div>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:12px;padding:24px;border:1px solid #eaeef3;">
+            <div style="font-size:13px;color:#999;margin-bottom:4px;">本月使用</div>
+            <div style="font-size:36px;font-weight:800;color:#1a1a1a;">1,520</div>
+            <div style="font-size:12px;color:#999;margin-top:4px;">视频 650 · Avatar 100 · Voice克隆 50</div>
+          </div>
+        </div>
+        <div style="margin-bottom:28px;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:14px;">充值方案</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div style="background:#fff;border-radius:12px;padding:28px 20px;border:1px solid #eaeef3;text-align:center;cursor:pointer;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#eaeef3'">
+              <div style="font-size:15px;font-weight:600;margin-bottom:8px;">入门版</div>
+              <div style="font-size:32px;font-weight:800;">¥99<span style="font-size:14px;font-weight:400;color:#999;">/月</span></div>
+              <div style="font-size:12px;color:#6366f1;margin:8px 0 16px;">500 Credits/月</div>
+              <button style="padding:8px 28px;border-radius:8px;font-size:13px;font-weight:600;border:1px solid #ddd;background:#fff;color:#333;cursor:pointer;">选择</button>
+            </div>
+            <div style="background:#fff;border-radius:12px;padding:28px 20px;border:2px solid #6366f1;text-align:center;position:relative;cursor:pointer;">
+              <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:12px;background:#6366f1;color:#fff;font-size:11px;font-weight:600;">推荐</div>
+              <div style="font-size:15px;font-weight:600;margin-bottom:8px;">专业版</div>
+              <div style="font-size:32px;font-weight:800;">¥299<span style="font-size:14px;font-weight:400;color:#999;">/月</span></div>
+              <div style="font-size:12px;color:#6366f1;margin:8px 0 16px;">2,000 Credits/月</div>
+              <button style="padding:8px 28px;border-radius:8px;font-size:13px;font-weight:600;background:#6366f1;color:#fff;border:none;cursor:pointer;">选择</button>
+            </div>
+            <div style="background:#fff;border-radius:12px;padding:28px 20px;border:1px solid #eaeef3;text-align:center;cursor:pointer;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#eaeef3'">
+              <div style="font-size:15px;font-weight:600;margin-bottom:8px;">企业版</div>
+              <div style="font-size:32px;font-weight:800;">¥999<span style="font-size:14px;font-weight:400;color:#999;">/月</span></div>
+              <div style="font-size:12px;color:#6366f1;margin:8px 0 16px;">10,000 Credits/月</div>
+              <button style="padding:8px 28px;border-radius:8px;font-size:13px;font-weight:600;border:1px solid #ddd;background:#fff;color:#333;cursor:pointer;">选择</button>
+            </div>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:12px;border:1px solid #eaeef3;overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid #f3f4f6;font-size:15px;font-weight:700;">使用记录</div>
+          <div style="display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #f9fafb;font-size:13px;"><span style="margin-right:10px;">🎬</span><span style="flex:1;font-weight:500;">视频生成</span><span style="color:#ef4444;font-weight:600;">-50 Credits</span><span style="color:#999;margin-left:14px;font-size:12px;">06-15 14:30</span></div>
+          <div style="display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #f9fafb;font-size:13px;"><span style="margin-right:10px;">🎬</span><span style="flex:1;font-weight:500;">视频生成</span><span style="color:#ef4444;font-weight:600;">-50 Credits</span><span style="color:#999;margin-left:14px;font-size:12px;">06-14 10:15</span></div>
+          <div style="display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #f9fafb;font-size:13px;"><span style="margin-right:10px;">🧑‍💼</span><span style="flex:1;font-weight:500;">Avatar创建</span><span style="color:#ef4444;font-weight:600;">-100 Credits</span><span style="color:#999;margin-left:14px;font-size:12px;">06-15 09:00</span></div>
+          <div style="display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #f9fafb;font-size:13px;"><span style="margin-right:10px;">🎙️</span><span style="flex:1;font-weight:500;">Voice克隆</span><span style="color:#ef4444;font-weight:600;">-50 Credits</span><span style="color:#999;margin-left:14px;font-size:12px;">06-13 16:45</span></div>
+          <div style="display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #f9fafb;font-size:13px;"><span style="margin-right:10px;">✨</span><span style="flex:1;font-weight:500;">脚本优化</span><span style="color:#ef4444;font-weight:600;">-10 Credits</span><span style="color:#999;margin-left:14px;font-size:12px;">06-12 11:20</span></div>
+          <div style="display:flex;align-items:center;padding:14px 20px;font-size:13px;"><span style="margin-right:10px;">💰</span><span style="flex:1;font-weight:500;">月度充值</span><span style="color:#22c55e;font-weight:600;">+2,000 Credits</span><span style="color:#999;margin-left:14px;font-size:12px;">06-01 00:00</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ====== Modal: 选择数字人 ====== -->
+<div class="modal-mask" id="modalAvatar">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>选择数字人</h3>
+      <button class="modal-close" onclick="closeModal('avatar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-search"><span>🔍</span><input placeholder="搜索数字人..." oninput="filterModalAv(this.value)"></div>
+      <div class="modal-av-grid" id="modalAvGrid">
+        <div class="modal-av selected" onclick="pickModalAv(this)" data-name="杨学瑞"><div class="ma-tag">NEW</div><div class="ma-emoji">👩‍💼</div><div class="ma-name">杨学瑞</div></div>
+        <div class="modal-av" onclick="pickModalAv(this)" data-name="专业男性"><div class="ma-emoji">👨‍💻</div><div class="ma-name">专业男性</div></div>
+        <div class="modal-av" onclick="pickModalAv(this)" data-name="教育讲师"><div class="ma-emoji">👩‍🏫</div><div class="ma-name">教育讲师</div></div>
+        <div class="modal-av" onclick="pickModalAv(this)" data-name="活力青年"><div class="ma-tag">HOT</div><div class="ma-emoji">🧑‍🎤</div><div class="ma-name">活力青年</div></div>
+        <div class="modal-av" onclick="pickModalAv(this)" data-name="科技达人"><div class="ma-emoji">🧑‍🔬</div><div class="ma-name">科技达人</div></div>
+        <div class="modal-av" onclick="pickModalAv(this)" data-name="新闻主播"><div class="ma-emoji">👩‍⚖️</div><div class="ma-name">新闻主播</div></div>
+        <div class="modal-av" onclick="pickModalAv(this)" data-name="商务男性"><div class="ma-emoji">👨‍💼</div><div class="ma-name">商务男性</div></div>
+        <div class="modal-av" onclick="pickModalAv(this)" data-name="甜美少女"><div class="ma-emoji">👧</div><div class="ma-name">甜美少女</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('avatar')">取消</button>
+      <button class="modal-btn confirm" onclick="confirmModalAv()">确认选择</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Modal: 选择声音 ====== -->
+<div class="modal-mask" id="modalVoice">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>选择声音</h3>
+      <button class="modal-close" onclick="closeModal('voice')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-search"><span>🔍</span><input placeholder="搜索音色..." oninput="filterModalVr(this.value)"></div>
+      <div class="modal-vr-list" id="modalVrList">
+        <div class="modal-vr selected" onclick="pickModalVr(this)" data-name="雷军演讲"><div class="mvr-icon">▶</div><div class="mvr-info"><div class="mvr-name">雷军演讲</div><div class="mvr-meta">中文 · 男声 · 沉稳有力</div></div><div class="mvr-play" onclick="event.stopPropagation()">🔊</div></div>
+        <div class="modal-vr" onclick="pickModalVr(this)" data-name="晓晓 (自然女声)"><div class="mvr-icon">🎤</div><div class="mvr-info"><div class="mvr-name">晓晓 (自然女声)</div><div class="mvr-meta">中文 · 女声 · 温暖亲切</div></div><div class="mvr-play" onclick="event.stopPropagation()">🔊</div></div>
+        <div class="modal-vr" onclick="pickModalVr(this)" data-name="云扬 (专业男声)"><div class="mvr-icon">🎤</div><div class="mvr-info"><div class="mvr-name">云扬 (专业男声)</div><div class="mvr-meta">中文 · 男声 · 沉稳大气</div></div><div class="mvr-play" onclick="event.stopPropagation()">🔊</div></div>
+        <div class="modal-vr" onclick="pickModalVr(this)" data-name="Jenny (English)"><div class="mvr-icon">🎤</div><div class="mvr-info"><div class="mvr-name">Jenny (English)</div><div class="mvr-meta">English · Female · Professional</div></div><div class="mvr-play" onclick="event.stopPropagation()">🔊</div></div>
+        <div class="modal-vr" onclick="pickModalVr(this)" data-name="Yuki (日本語)"><div class="mvr-icon">🎤</div><div class="mvr-info"><div class="mvr-name">Yuki (日本語)</div><div class="mvr-meta">日本語 · 女声 · 明るい声</div></div><div class="mvr-play" onclick="event.stopPropagation()">🔊</div></div>
+        <div class="modal-vr" onclick="pickModalVr(this)" data-name="我的克隆语音"><div class="mvr-icon">🎙️</div><div class="mvr-info"><div class="mvr-name">我的克隆语音</div><div class="mvr-meta">自定义 · 已训练完成</div></div><div class="mvr-play" onclick="event.stopPropagation()">🔊</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('voice')">取消</button>
+      <button class="modal-btn confirm" onclick="confirmModalVr()">确认选择</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Modal: 创建数字人 ====== -->
+<div class="modal-mask" id="modalUpload">
+  <div class="modal" style="width:520px;">
+    <div class="modal-header">
+      <h3 id="uploadTitle">上传视频创建数字人</h3>
+      <button class="modal-close" onclick="closeModal('upload')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- 名称输入 -->
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px;">数字人名称</label>
+        <input id="avNameInput" type="text" placeholder="为你的数字人起个名字" style="width:100%;padding:10px 14px;border:1px solid #e5e5e5;border-radius:8px;font-size:14px;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='#1a1a1a'" onblur="this.style.borderColor='#e5e5e5'">
+      </div>
+
+      <!-- 视频/照片上传区 -->
+      <div id="uploadDropzone">
+        <div style="border:2px dashed #ddd;border-radius:12px;padding:40px 24px;text-align:center;cursor:pointer;transition:border-color 0.2s;" onmouseover="this.style.borderColor='#aaa'" onmouseout="this.style.borderColor='#ddd'" onclick="document.getElementById('uploadInput').click()">
+          <div style="font-size:48px;margin-bottom:12px;opacity:0.4;" id="uploadIcon">📁</div>
+          <div style="font-size:15px;font-weight:600;color:#333;margin-bottom:6px;" id="uploadHint">点击或拖拽文件到此处</div>
+          <div style="font-size:12px;color:#999;" id="uploadFormats">支持 MP4、MOV 格式，最大 500MB</div>
+          <input type="file" id="uploadInput" style="display:none;" accept="video/*,image/*" onchange="handleUpload(this)">
+        </div>
+        <div id="uploadPreview" style="display:none;margin-top:16px;padding:16px;border-radius:10px;background:#f9f9f9;border:1px solid #eee;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:48px;height:48px;border-radius:8px;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-size:20px;" id="uploadPreviewIcon">📄</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;" id="uploadFileName">文件名</div>
+              <div style="font-size:11px;color:#999;" id="uploadFileSize">大小</div>
+            </div>
+            <button style="padding:4px 10px;border-radius:6px;font-size:12px;color:#dc2626;background:#fee2e2;border:none;cursor:pointer;" onclick="resetUpload()">移除</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 授权提示（video 类型时显示） -->
+      <div id="consentNotice" style="display:none;margin-top:16px;padding:12px 16px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;">
+        <div style="display:flex;align-items:start;gap:8px;">
+          <span style="font-size:16px;">⚠️</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#92400e;">需要本人授权</div>
+            <div style="font-size:12px;color:#b45309;margin-top:2px;">视频创建的数字人需要本人完成授权同意后才能使用。创建后系统会生成一个授权链接，请发送给视频中的人物完成确认。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('upload')">取消</button>
+      <button class="modal-btn confirm" id="uploadConfirmBtn" onclick="confirmUpload()">开始创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toastEl"><span id="toastIco"></span><span id="toastMsg"></span></div>
+
+<!-- ====== Modal: 克隆语音 ====== -->
+<div class="modal-mask" id="modalCloneVoice">
+  <div class="modal" style="width:500px;">
+    <div class="modal-header">
+      <h3>克隆语音</h3>
+      <button class="modal-close" onclick="closeModal('cloneVoice')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- 步骤1：填写信息 + 上传音频 -->
+      <div id="cloneStep1">
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px;">语音名称</label>
+          <input id="cloneNameInput" type="text" placeholder="为克隆语音起个名字" style="width:100%;padding:10px 14px;border:1px solid #e5e5e5;border-radius:8px;font-size:14px;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='#1a1a1a'" onblur="this.style.borderColor='#e5e5e5'">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px;">上传音频文件</label>
+          <div id="cloneDropzone" style="border:2px dashed #ddd;border-radius:12px;padding:36px 24px;text-align:center;cursor:pointer;transition:border-color 0.2s;" onmouseover="this.style.borderColor='#aaa'" onmouseout="this.style.borderColor='#ddd'" onclick="document.getElementById('cloneAudioInput').click()">
+            <div style="font-size:40px;margin-bottom:10px;opacity:0.4;">🎵</div>
+            <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:4px;">点击或拖拽音频到此处</div>
+            <div style="font-size:12px;color:#999;">支持 MP3、WAV 格式，建议 10 秒以上的清晰人声</div>
+            <input type="file" id="cloneAudioInput" style="display:none;" accept=".mp3,.wav,audio/*" onchange="handleCloneUpload(this)">
+          </div>
+          <div id="clonePreview" style="display:none;margin-top:12px;padding:14px;border-radius:10px;background:#f9f9f9;border:1px solid #eee;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:8px;background:#f3e8ff;display:flex;align-items:center;justify-content:center;font-size:18px;">🎵</div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:600;" id="cloneFileName">文件名</div>
+                <div style="font-size:11px;color:#999;" id="cloneFileSize">大小</div>
+              </div>
+              <button style="padding:4px 10px;border-radius:6px;font-size:12px;color:#dc2626;background:#fee2e2;border:none;cursor:pointer;" onclick="resetCloneUpload()">移除</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-bottom:0;">
+          <label style="display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px;">语言（可选）</label>
+          <select id="cloneLangSelect" style="width:100%;padding:10px 14px;border:1px solid #e5e5e5;border-radius:8px;font-size:14px;color:#333;background:#fff;outline:none;">
+            <option value="">自动检测</option>
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+        <div style="margin-top:14px;padding:10px 14px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;">
+          <div style="font-size:12px;color:#b45309;">💡 建议上传 10 秒以上、无背景噪音的清晰人声录音，克隆效果更佳。</div>
+        </div>
+      </div>
+
+      <!-- 步骤2：训练中 -->
+      <div id="cloneStep2" style="display:none;text-align:center;padding:20px 0;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#f3e8ff;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;">🤖</div>
+        <div style="font-size:16px;font-weight:700;color:#333;margin-bottom:6px;">AI 正在训练语音模型</div>
+        <div style="font-size:13px;color:#999;margin-bottom:20px;">预计需要 1-3 分钟，请耐心等待...</div>
+        <div style="max-width:300px;margin:0 auto;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;">
+            <span style="color:#666;">训练进度</span>
+            <span style="font-weight:700;color:#7c3aed;" id="clonePct">0%</span>
+          </div>
+          <div style="height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,#7c3aed,#a78bfa);transition:width 0.3s;" id="cloneFill"></div>
+          </div>
+        </div>
+        <div style="margin-top:16px;font-size:12px;color:#bbb;">正在分析音色特征、提取声纹...</div>
+      </div>
+
+      <!-- 步骤3：完成 -->
+      <div id="cloneStep3" style="display:none;text-align:center;padding:20px 0;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;">✅</div>
+        <div style="font-size:16px;font-weight:700;color:#166534;margin-bottom:6px;">语音克隆成功！</div>
+        <div style="font-size:13px;color:#999;margin-bottom:16px;">「<span id="cloneResultName">我的克隆语音</span>」已添加到语音列表</div>
+        <div style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;background:#f9fafb;border:1px solid #eee;">
+          <span style="font-size:18px;">🎙️</span>
+          <div style="text-align:left;">
+            <div style="font-size:13px;font-weight:600;" id="cloneResultName2">我的克隆语音</div>
+            <div style="font-size:11px;color:#999;">自定义 · 已训练完成</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" id="cloneCancelBtn" onclick="closeModal('cloneVoice')">取消</button>
+      <button class="modal-btn confirm" id="cloneConfirmBtn" onclick="startCloneVoice()">开始克隆</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== Modal: 选择背景（数据源：素材管理-图片） ====== -->
+<div class="modal-mask" id="modalBg">
+  <div class="modal" style="width:600px;">
+    <div class="modal-header">
+      <h3>选择背景</h3>
+      <button class="modal-close" onclick="closeModal('bg')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-search"><span>🔍</span><input placeholder="搜索素材图片..." oninput="filterModalBg(this.value)"></div>
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <div class="sub-tab active" style="font-size:12px;padding:4px 12px;">全部</div>
+        <div class="sub-tab" style="font-size:12px;padding:4px 12px;">我的上传</div>
+        <div class="sub-tab" style="font-size:12px;padding:4px 12px;">AI 生成</div>
+      </div>
+      <div class="modal-bg-grid" id="modalBgGrid">
+        <div class="modal-bg selected" onclick="pickModalBg(this)" data-name="自动">
+          <div class="mbg-preview" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);display:flex;align-items:center;justify-content:center;font-size:28px;">✨</div>
+          <div class="mbg-name">自动</div>
+        </div>
+        <div class="modal-bg" onclick="pickModalBg(this)" data-name="插画1">
+          <div class="mbg-preview" style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);display:flex;align-items:center;justify-content:center;font-size:28px;">🖼️</div>
+          <div class="mbg-name">插画1.png</div>
+        </div>
+        <div class="modal-bg" onclick="pickModalBg(this)" data-name="插画2">
+          <div class="mbg-preview" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);display:flex;align-items:center;justify-content:center;font-size:28px;">🎨</div>
+          <div class="mbg-name">插画2.png</div>
+        </div>
+        <div class="modal-bg" onclick="pickModalBg(this)" data-name="办公">
+          <div class="mbg-preview" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;font-size:28px;">🏢</div>
+          <div class="mbg-name">办公.png</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding:10px 14px;border-radius:8px;background:#f9fafb;border:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:12px;color:#999;">更多图片请前往素材管理上传</span>
+        <button style="padding:5px 12px;border-radius:6px;font-size:12px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;" onclick="closeModal('bg');switchTab('media',null);toast('🖼️','请在素材管理中上传图片')">前往素材管理</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('bg')">取消</button>
+      <button class="modal-btn confirm" onclick="confirmModalBg()">确认选择</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Tab switching ===== */
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab-page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  document.querySelectorAll('.sb-item').forEach(s => s.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const page = document.getElementById('tp-' + tab);
+  if (page) { page.classList.add('active'); page.style.display = ''; }
+  document.getElementById('appSidebar').style.display = '';
+  document.querySelector('.content').classList.remove('create-mode');
+}
+function goCreate() {
+  document.querySelectorAll('.tab-page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  document.querySelectorAll('.sb-item').forEach(s => s.classList.remove('active'));
+  const pg = document.getElementById('tp-create');
+  pg.style.display = ''; pg.classList.add('active');
+  document.getElementById('appSidebar').style.display = 'none';
+  document.querySelector('.content').classList.add('create-mode');
+}
+
+/* ===== Modals ===== */
+let pendingAv = '杨学瑞', pendingVr = '雷军演讲', pendingBg = '自动';
+let pendingAvEmoji = '👩‍💼';
+
+function openModal(type) {
+  const map = { avatar: 'modalAvatar', voice: 'modalVoice', bg: 'modalBg', upload: 'modalUpload', cloneVoice: 'modalCloneVoice' };
+  document.getElementById(map[type]).classList.add('open');
+  if (type === 'cloneVoice') resetCloneModal();
+}
+function closeModal(type) {
+  const map = { avatar: 'modalAvatar', voice: 'modalVoice', bg: 'modalBg', upload: 'modalUpload', cloneVoice: 'modalCloneVoice' };
+  document.getElementById(map[type]).classList.remove('open');
+}
+
+function pickModalAv(el) {
+  document.querySelectorAll('#modalAvGrid .modal-av').forEach(a => a.classList.remove('selected'));
+  el.classList.add('selected');
+  pendingAv = el.dataset.name;
+  pendingAvEmoji = el.querySelector('.ma-emoji').textContent;
+}
+function confirmModalAv() {
+  document.getElementById('chipAvName').textContent = pendingAv;
+  document.getElementById('chipAvIcon').textContent = pendingAvEmoji;
+  closeModal('avatar');
+  toast('🧑‍💼', '已选择：' + pendingAv);
+}
+
+function pickModalVr(el) {
+  document.querySelectorAll('#modalVrList .modal-vr').forEach(v => v.classList.remove('selected'));
+  el.classList.add('selected');
+  pendingVr = el.dataset.name;
+}
+function confirmModalVr() {
+  document.getElementById('chipVrName').textContent = pendingVr;
+  closeModal('voice');
+  toast('🎙️', '已选择：' + pendingVr);
+}
+
+function pickModalBg(el) {
+  document.querySelectorAll('#modalBgGrid .modal-bg').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  pendingBg = el.dataset.name;
+}
+function confirmModalBg() {
+  document.getElementById('chipBgName').textContent = pendingBg;
+  closeModal('bg');
+  toast('🖼️', '背景已设为：' + pendingBg);
+}
+function filterModalBg(q) {
+  document.querySelectorAll('#modalBgGrid .modal-bg').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+
+/* ===== Clone Voice Modal ===== */
+function resetCloneModal() {
+  document.getElementById('cloneStep1').style.display = '';
+  document.getElementById('cloneStep2').style.display = 'none';
+  document.getElementById('cloneStep3').style.display = 'none';
+  document.getElementById('cloneNameInput').value = '';
+  document.getElementById('cloneLangSelect').value = '';
+  document.getElementById('cloneCancelBtn').textContent = '取消';
+  document.getElementById('cloneConfirmBtn').textContent = '开始克隆';
+  document.getElementById('cloneConfirmBtn').disabled = false;
+  resetCloneUpload();
+}
+function handleCloneUpload(input) {
+  if (!input.files.length) return;
+  const file = input.files[0];
+  document.getElementById('cloneDropzone').style.display = 'none';
+  document.getElementById('clonePreview').style.display = '';
+  document.getElementById('cloneFileName').textContent = file.name;
+  document.getElementById('cloneFileSize').textContent = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+}
+function resetCloneUpload() {
+  document.getElementById('cloneDropzone').style.display = '';
+  document.getElementById('clonePreview').style.display = 'none';
+  document.getElementById('cloneAudioInput').value = '';
+}
+function startCloneVoice() {
+  const name = document.getElementById('cloneNameInput').value.trim();
+  if (!name) {
+    document.getElementById('cloneNameInput').style.borderColor = '#dc2626';
+    document.getElementById('cloneNameInput').focus();
+    return;
+  }
+  if (document.getElementById('clonePreview').style.display === 'none') {
+    toast('🎵', '请先上传音频文件');
+    return;
+  }
+  document.getElementById('cloneStep1').style.display = 'none';
+  document.getElementById('cloneStep2').style.display = '';
+  document.getElementById('cloneConfirmBtn').disabled = true;
+  document.getElementById('cloneConfirmBtn').textContent = '训练中...';
+  document.getElementById('cloneCancelBtn').textContent = '后台训练';
+
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += Math.random() * 8 + 2;
+    if (pct >= 100) {
+      pct = 100; clearInterval(iv);
+      document.getElementById('cloneFill').style.width = '100%';
+      document.getElementById('clonePct').textContent = '100%';
+      setTimeout(() => {
+        document.getElementById('cloneStep2').style.display = 'none';
+        document.getElementById('cloneStep3').style.display = '';
+        document.getElementById('cloneResultName').textContent = name;
+        document.getElementById('cloneResultName2').textContent = name;
+        document.getElementById('cloneCancelBtn').textContent = '关闭';
+        document.getElementById('cloneConfirmBtn').textContent = '完成';
+        document.getElementById('cloneConfirmBtn').disabled = false;
+        document.getElementById('cloneConfirmBtn').onclick = function() { closeModal('cloneVoice'); };
+        toast('🎙️', '语音克隆成功：' + name);
+      }, 500);
+    }
+    document.getElementById('cloneFill').style.width = Math.floor(pct) + '%';
+    document.getElementById('clonePct').textContent = Math.floor(pct) + '%';
+  }, 200);
+}
+
+function filterModalAv(q) {
+  document.querySelectorAll('#modalAvGrid .modal-av').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+function filterModalVr(q) {
+  document.querySelectorAll('#modalVrList .modal-vr').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+
+/* ===== Upload modal ===== */
+let uploadType = 'video';
+function showUploadModal(type) {
+  uploadType = type;
+  const titleMap = { video: '上传视频创建数字人', photo: '上传照片创建数字人' };
+  const iconMap = { video: '🎬', photo: '📸' };
+  const hintMap = { video: '点击或拖拽视频到此处', photo: '点击或拖拽照片到此处' };
+  const formatMap = { video: '支持 MP4、MOV 格式，最大 500MB', photo: '支持 JPG、PNG 格式，建议正面免冠照' };
+
+  document.getElementById('uploadTitle').textContent = titleMap[type];
+  document.getElementById('avNameInput').value = '';
+  document.getElementById('uploadDropzone').style.display = '';
+  document.getElementById('uploadIcon').textContent = iconMap[type];
+  document.getElementById('uploadHint').textContent = hintMap[type];
+  document.getElementById('uploadFormats').textContent = formatMap[type];
+  document.getElementById('uploadInput').accept = type === 'video' ? 'video/*' : 'image/*';
+  document.getElementById('consentNotice').style.display = type === 'video' ? '' : 'none';
+  resetUpload();
+  openModal('upload');
+}
+function handleUpload(input) {
+  if (!input.files.length) return;
+  const file = input.files[0];
+  document.getElementById('uploadDropzone').querySelector('div[style*="dashed"]').style.display = 'none';
+  document.getElementById('uploadPreview').style.display = '';
+  document.getElementById('uploadPreviewIcon').textContent = uploadType === 'video' ? '🎬' : '📸';
+  document.getElementById('uploadFileName').textContent = file.name;
+  document.getElementById('uploadFileSize').textContent = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+}
+function resetUpload() {
+  const dropInner = document.getElementById('uploadDropzone').querySelector('div[style*="dashed"]');
+  if (dropInner) dropInner.style.display = '';
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('uploadInput').value = '';
+}
+function confirmUpload() {
+  const name = document.getElementById('avNameInput').value.trim();
+  if (!name) {
+    document.getElementById('avNameInput').style.borderColor = '#dc2626';
+    document.getElementById('avNameInput').focus();
+    return;
+  }
+  if (!document.getElementById('uploadPreview').style.display || document.getElementById('uploadPreview').style.display === 'none') {
+    toast('📁', '请先上传文件');
+    return;
+  }
+  closeModal('upload');
+  const label = uploadType === 'video' ? '视频' : '照片';
+  toast('🚀', '正在创建数字人「' + name + '」...');
+  setTimeout(() => {
+    if (uploadType === 'video') {
+      toast('📋', '数字人已提交训练，需等待本人授权确认');
+    } else {
+      toast('🎉', '数字人「' + name + '」创建成功！');
+    }
+  }, 2500);
+}
+
+/* ===== Toast ===== */
+function toast(icon, msg) {
+  const t = document.getElementById('toastEl');
+  document.getElementById('toastIco').textContent = icon;
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ===== Waves ===== */
+document.querySelectorAll('[data-wave]').forEach(w => {
+  for (let i = 0; i < 24; i++) {
+    const s = document.createElement('span');
+    s.style.height = (Math.random() * 20 + 6) + 'px';
+    w.appendChild(s);
+  }
+});
+function playWave(btn) {
+  const card = btn.closest('.voice-card');
+  const wave = card.querySelector('[data-wave]');
+  if (!wave) return;
+  const bars = wave.children;
+  for (let b of bars) b.classList.remove('active');
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i >= bars.length) { clearInterval(iv); for (let b of bars) b.classList.remove('active'); return; }
+    bars[i].classList.add('active'); i++;
+  }, 60);
+}
+
+/* ===== Media tab switching ===== */
+function switchMediaTab(tab, el) {
+  el.parentElement.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const allGrid = document.getElementById('mediaGridAll');
+  const scriptGrid = document.getElementById('mediaGridScript');
+  if (tab === 'script') {
+    allGrid.style.display = 'none';
+    scriptGrid.style.display = '';
+  } else {
+    scriptGrid.style.display = 'none';
+    allGrid.style.display = '';
+    allGrid.querySelectorAll('.media-card').forEach(card => {
+      if (tab === 'all') { card.style.display = ''; return; }
+      const map = { img: 'img', video: 'video', audio: 'audio' };
+      card.style.display = card.dataset.type === map[tab] ? '' : 'none';
+    });
+  }
+}
+
+/* ===== Sub-tab / tab-link clicks ===== */
+document.querySelectorAll('.sub-tab').forEach(t => {
+  t.addEventListener('click', function() {
+    this.parentElement.querySelectorAll('.sub-tab').forEach(s => s.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+document.querySelectorAll('.tabs-left .tab-link').forEach(t => {
+  t.addEventListener('click', function() {
+    this.parentElement.querySelectorAll('.tab-link').forEach(s => s.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+/* ===== Close modal on mask click ===== */
+document.querySelectorAll('.modal-mask').forEach(m => {
+  m.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

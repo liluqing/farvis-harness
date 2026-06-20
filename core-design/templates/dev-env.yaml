@@ -1,0 +1,27 @@
+# 开发环境配置
+# Phase 3 开发时，Agent 自动读取此文件生成 application.yml，避免密码散落在多处。
+
+services:
+  mysql:
+    host: localhost
+    port: 3306
+    username: root
+    password: root123
+    database: user_management
+    docker_container: harness-mysql
+    
+  redis:
+    host: localhost
+    port: 6379
+    docker_container: harness-redis
+
+# Maven 参数说明（避免 -DskipTests vs -Dmaven.test.skip=true 混淆）
+maven:
+  # 跳过测试编译+执行（推荐用于开发启动）
+  skip_all: "-Dmaven.test.skip=true"
+  
+  # 只跳过测试执行，仍编译测试代码（用于验证编译但跳过运行）
+  skip_run_only: "-DskipTests"
+  
+  # 正常执行测试
+  run_tests: ""

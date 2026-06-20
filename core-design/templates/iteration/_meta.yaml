@@ -20,6 +20,17 @@ external_refs:
   issue_url: ""        # Issue/需求卡片链接（如有）
   figma_url: ""        # 设计稿链接（如有）
 
+# 本次迭代中的临时方案 / 已知限制
+# Agent 在开发过程中发现"先凑合这么干"的地方，记录在这里，避免后续迭代踩坑
+known_limitations: []
+# 示例：
+# known_limitations:
+#   - id: "KL-001"
+#     scope: "farvis-payment"
+#     description: "支付接口为模拟实现，未对接真实支付渠道"
+#     workaround: "使用 POST /api/v1/payment/simulate 模拟支付成功"
+#     resolution: "后续迭代对接支付宝/微信支付时替换"
+
 # 归档时填写（status 改为 archived 时）
 archive_info:
   archive_date: YYYY-MM-DD  # 实际归档日期

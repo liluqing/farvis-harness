@@ -1,0 +1,28 @@
+iteration: 积分体系
+version: v1.0
+start_date: 2026-06-19
+target_date: 2026-06-26
+status: archived
+
+modules_affected:
+  - farvis-credits
+  - farvis-payment
+
+summary: 实现 Credits 积分体系完整闭环——余额查询、套餐购买、支付对接、消费记录
+
+external_refs:
+  prd_url: "~/product-docs/Farvis-AI-PRD-v1.md"
+  issue_url: ""
+  figma_url: ""
+
+known_limitations:
+  - id: "KL-001"
+    scope: "farvis-payment"
+    description: "支付接口为模拟实现，未对接真实支付渠道"
+    workaround: "使用 POST /api/v1/payment/simulate 模拟支付成功"
+    resolution: "后续迭代对接支付宝/微信支付时替换"
+
+archive_info:
+  archive_date: 2026-06-19
+  actual_duration_days: 1
+  retrospective: "首次 Harness 实战验证，完整走通需求→设计→开发→前端→联调→归档全流程。后端 25 文件 + 前端 8 文件，联调验证 5/5 场景通过。"

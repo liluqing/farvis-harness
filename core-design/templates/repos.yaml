@@ -1,0 +1,41 @@
+# 多仓库协调配置
+# 用于前后端分离项目，协调多个仓库的 commit 和发布流程
+
+# 仓库列表
+repositories:
+  - name: "user-management"
+    type: "backend"
+    path: "./user-management"
+    description: "Spring Boot 后端服务"
+    
+  - name: "user-management-frontend"
+    type: "frontend"
+    path: "./user-management-frontend"
+    description: "React 前端应用"
+
+# 协调规则
+coordination:
+  # commit 协调：当触发 commit 时，哪些仓库需要同步 commit
+  commit_strategy: "all"  # all = 所有仓库, affected = 仅受影响的仓库, manual = 手动指定
+  
+  # 发布协调：归档迭代时，哪些仓库需要打 tag
+  release_strategy: "all"
+  
+  # 分支命名：所有仓库使用统一的分支命名
+  branch_naming: "iteration/{迭代名}"
+
+# Git Hooks 配置
+hooks:
+  # 是否启用 pre-commit hook（文档同步检查）
+  enable_pre_commit: true
+  
+  # 是否启用 pre-push hook（集成测试）
+  enable_pre_push: false
+
+# 示例：commit 流程
+# 1. Agent 修改了后端代码
+# 2. pre-commit hook 检查后端仓库的 docs-sync-marker.json
+# 3. 如果 commit_strategy = "all"，Agent 会：
+#    - commit 后端仓库
+#    - commit 前端仓库（即使没有修改，也会创建一个空 commit 或跳过）
+# 4. 如果 commit_strategy = "affected"，Agent 只 commit 后端仓库
