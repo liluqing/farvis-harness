@@ -79,5 +79,22 @@ EOF
         
         echo "✅ 检测到分支合并：$MERGED_BRANCH → main"
         echo "📬 已写入事件到 .harness/inbox/${EVENT_ID}.json"
+        
+        # 更新 state.json：标记迭代为 completed
+        if [ -f ".harness/flow/shared/state.json" ]; then
+            # 用 jq 或 python 更新状态
+            if command -v python3 &>/dev/null; then
+                python3 -c "
+import json
+with open('.harness/flow/shared/state.json') as f:
+    state = json.load(f)
+state['iteration']['status'] = 'completed'
+with open('.harness/flow/shared/state.json', 'w') as f:
+    json.dump(state, f, indent=2)
+" 2>/dev/null && echo "📋 state.json 已更新为 completed"
+            else
+                echo "⚠️  无法更新 state.json（python3 不可用）"
+            fi
+        fi
     fi
 fi

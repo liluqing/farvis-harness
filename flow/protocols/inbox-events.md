@@ -66,6 +66,11 @@
 5. 更新或创建 `.harness/flow/shared/state.json`
 6. 输出摘要，询问用户本次迭代目标
 
+事件处理完成后，Agent 必须更新 `state.json`：
+- 新迭代的 `iteration.id` 递增
+- `iteration.status` 设为 `in_progress`
+- 所有 Phase 重置为 `pending`
+
 ---
 
 ## branch-merged

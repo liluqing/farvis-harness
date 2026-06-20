@@ -422,5 +422,35 @@ tasks.register<Test>("fastTest") {
 2. **文档管理在 `Docs/`** — 迭代文档集中存放，项目状态文档归档时更新
 3. **只修改 AGENTS.md + CLAUDE.md** — 两个入口文件，渐进披露 Harness 结构。不改动其他项目文件
 4. **已有文件不覆盖** — `.harness/` 内的 `cp -n`；AGENTS.md / CLAUDE.md 存在则追加不覆盖
-5. **不强制合并构建配置** — 增量编译等配置写入 AGENTS.md 的「建议配置」段，人类开发者自主决定
-6. **项目代码不动** — 不修改 `src/` 下的任何文件
+
+---
+
+## 初始化后验证
+
+初始化完成后，Agent 必须执行以下验证（在初始化报告中输出结果）：
+
+```bash
+# 1. 验证 Git hooks 可执行
+find .harness/hooks/git/ -type f -exec test -x {} \; -exec echo "✅ {} 可执行" \;
+
+# 2. 验证软链接有效
+for hook in pre-commit pre-push commit-msg post-checkout post-merge; do
+  if [ -L ".git/hooks/$hook" ] && [ -e ".git/hooks/$hook" ]; then
+    echo "✅ .git/hooks/$hook 已链接"
+  else
+    echo "⚠️ .git/hooks/$hook 未配置"
+  fi
+done
+
+# 3. 验证 state.json 存在且 JSON 解析通过
+python3 -c "import json; json.load(open('.harness/flow/shared/state.json'))" && \
+  echo "✅ state.json 格式正确"
+
+# 4. 验证目录结构
+for dir in .harness/inbox .harness/inbox-processed Docs/iterations Docs/archive Docs/project; do
+  [ -d "$dir" ] && echo "✅ $dir/" || echo "⚠️ $dir/ 缺失"
+done
+```
+
+验证结果写入初始化报告的「验证」段落，任何 ⚠️ 项都要说明原因和修复方式。
+

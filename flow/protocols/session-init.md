@@ -31,24 +31,35 @@
 
 ---
 
-## 步骤 2：恢复上下文
+## 步骤 2：处理待处理事件
+
+在恢复上下文前，先扫 `.harness/inbox/`：
+
+```
+扫描 .harness/inbox/*.json
+    ├── 有 high priority 事件 → 加载 protocols/inbox-events.md，逐条处理
+    │   └── 处理完后，更新 state.json（如 branch-created → 写入新迭代状态）
+    ├── 有 normal/low 事件 → 输出数量，不阻塞，用户可选择立即处理或延后
+    └── 无事件 → 进入步骤 3
+```
+
+## 步骤 3：恢复上下文
 
 按顺序加载，除状态摘要外不要把全文输出给用户：
 
-1. `.harness/inbox/`：待处理事件，优先 high priority
-2. `Docs/AI-CONTEXT.md`：项目全局概览、当前状态摘要、索引
-3. `.harness/ai-context/context.yaml` 或分文件：
+1. `Docs/AI-CONTEXT.md`：项目全局概览、当前状态摘要、索引
+2. `.harness/ai-context/context.yaml` 或分文件：
    - `project-map.yaml`
    - `business-rules.yaml`
    - `error-catalog.yaml`
    - `coding-rules.yaml`
-4. `.harness/flow/shared/state.json`：当前 Phase、任务、切片、TDD 步骤
-5. `Docs/iterations/`：活跃迭代列表
-6. 最近的迭代 PRD：优先活跃迭代，其次最近归档
+3. `.harness/flow/shared/state.json`：当前 Phase、任务、切片、TDD 步骤
+4. `Docs/iterations/`：活跃迭代列表
+5. 最近的迭代 PRD：优先活跃迭代，其次最近归档
 
 ---
 
-## 步骤 3：输出状态摘要
+## 步骤 4：输出状态摘要
 
 当用户没有直接给出具体需求时，输出：
 
@@ -82,7 +93,7 @@
 | `state.json` 不存在 | 输出「项目已初始化 Harness，但尚无迭代记录。请描述你的需求。」 |
 | `state.json` 存在但所有 Phase 都是 pending | 同上 |
 | 所有迭代 completed | 输出「所有迭代已完成。可以开始新迭代或查看历史。」 |
-| `.harness/inbox/` 有 high priority 事件 | 先加载 `protocols/inbox-events.md` 处理 |
+| inbox 有未处理事件（步骤 2 未处理） | 提示用户「有 N 个待处理事件，是否先处理？」 |
 | `Docs/AI-CONTEXT.md` 缺失 | 从 `Docs/project/` 和 `.harness/ai-context/` 恢复最小摘要，并建议执行同步 |
 
 ---
