@@ -1,7 +1,7 @@
 # 架构设计: <!-- 项目/功能名 -->
 
 > **版本：** v1.0 · <!-- 日期 -->
-> **关联 PRD：** <!-- docs/product/prd-xxx.md -->
+> **关联 PRD：** <!-- Docs/iterations/{迭代名}/prd.md -->
 > **关联任务清单：** <!-- task-list-xxx.md -->
 
 ---

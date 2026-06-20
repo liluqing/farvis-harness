@@ -105,4 +105,6 @@ skill.md
 | 项目现状 | `Docs/project/` |
 | 归档迭代 | `Docs/archive/{迭代名}/` |
 
+**迭代目录命名规范：** `{YYYY-MM-DD}_{需求名}_{版本}`，例如 `2026-06-19_用户认证_v1.0`。目录名 = Git 分支名（一个分支一个迭代）。
+
 如果旧 Phase 文档中出现 `docs/product/`、`docs/architecture/`、`docs/design/` 等旧路径，按 `core-design/03-systems-integration.md` 的映射转换到 `Docs/iterations/{迭代名}/`。

@@ -1,7 +1,7 @@
 ---
 name: harness-java-init
 description: 初始化 Java 项目的 AI Coding Harness——自动检测技术栈，从模板仓库复制到项目 .harness/ 目录，通过 AGENTS.md / CLAUDE.md 渐进披露给 AI 编码工具。
-version: 0.3.0
+version: 1.0.0
 tags: [harness, java, init, spring-boot, infrastructure]
 triggers:
   - 初始化.*Harness

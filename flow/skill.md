@@ -1,7 +1,7 @@
 ---
 name: harness-dev-flow
 description: Harness 人机协作开发流程——从需求到交付的迭代式闭环。人定义目标和关键决策，Harness 控制流程和规范，Agent 负责实际执行。
-version: 4.0.0
+version: 1.0.0
 tags: [harness, development, flow, tdd, product, prototype, architecture, integration]
 triggers:
   - 需求分析

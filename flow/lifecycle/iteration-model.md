@@ -83,7 +83,7 @@ flowchart TD
 
 ---
 
-## 四层信息模型
+## 五层信息模型
 
 | 层 | 位置 | 用途 |
 |----|------|------|
@@ -91,6 +91,7 @@ flowchart TD
 | 项目现状 | `Docs/project/` | 当前业务、架构、数据、接口的真相源 |
 | 结构化上下文 | `.harness/ai-context/*.yaml` | Agent 做编码和路由决策 |
 | 迭代历史 | `Docs/iterations/` + `Docs/archive/` | 过程记录和历史决策 |
+| 异步事件通道 | `.harness/inbox/` + `.harness/inbox-processed/` | Git hook → Agent 事件通信 |
 
 ---
 

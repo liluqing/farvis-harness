@@ -99,7 +99,7 @@ git status --porcelain | wc -l
 ```yaml
 status: archived
 archive_info:
-  archived_at: "2026-06-19T22:30:00+08:00"
+  archive_date: "2026-06-19"
   archived_by: "AI Agent"
   notes: "归档完成"
 ```

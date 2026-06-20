@@ -25,6 +25,7 @@
     },
     "phase3": {
       "status": "pending",
+      "_comment": "total_tasks 由 Agent 在 Phase 2 确认 task-list 后写入，是 Agent 自我估值的切片实现任务总数（含 TDD 步）。completed_tasks 每完成一个 slice 递增一次",
       "current_slice": null,
       "total_tasks": 0,
       "completed_tasks": 0
