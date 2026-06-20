@@ -445,6 +445,20 @@ Agent 输出：
 
 **归档触发**：用户确认交付完成后，Agent 加载 `core-design/templates/archive-checklist.md` 执行归档。
 
+### 多仓库提交
+
+Phase 4 交付前，Agent 对所有关联仓库执行最终提交：
+
+```bash
+# 读取 core-design/repos.yaml（如存在），对每个仓库：
+cd <repo-path>
+git status --short
+git add -A && git commit -m "release: Phase 4 集成测试完成，迭代 v{版本}"
+git push origin <当前分支>
+```
+
+确保所有仓库的改动已同步，不留未提交代码。
+
 **迭代状态更新：**
 - 更新 `flow/shared/state.json`：`iteration.status` 设为 "completed"
 - 归档完成后：`status` 改为 "archived"，迭代目录迁移到 `Docs/archive/`
